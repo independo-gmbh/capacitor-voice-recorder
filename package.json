@@ -1,6 +1,6 @@
 {
   "name": "@independo/capacitor-voice-recorder",
-  "version": "6.0.0",
+  "version": "6.0.1-dev.2",
   "description": "Capacitor plugin for voice recording",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -11,7 +11,7 @@
     "android/build.gradle",
     "dist/",
     "ios/Plugin/",
-    "CapacitorVoiceRecorder.podspec"
+    "IndependoCapacitorVoiceRecorder.podspec"
   ],
   "contributors": [
     {
@@ -23,10 +23,11 @@
       "email": "admin@independo.app"
     }
   ],
+  "author": "Independo GmbH",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/independo-gmbh/capacitor-voice-recorder"
+    "url": "https://github.com/independo-gmbh/capacitor-voice-recorder.git"
   },
   "bugs": {
     "url": "https://github.com/independo-gmbh/capacitor-voice-recorder/issues"
