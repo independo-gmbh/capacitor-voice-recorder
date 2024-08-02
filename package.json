@@ -11,7 +11,7 @@
     "android/build.gradle",
     "dist/",
     "ios/Plugin/",
-    "CapacitorVoiceRecorder.podspec"
+    "IndependoCapacitorVoiceRecorder.podspec"
   ],
   "contributors": [
     {
