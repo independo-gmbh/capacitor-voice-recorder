@@ -23,10 +23,11 @@
       "email": "admin@independo.app"
     }
   ],
+  "author": "Independo GmbH",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/independo-gmbh/capacitor-voice-recorder"
+    "url": "https://github.com/independo-gmbh/capacitor-voice-recorder.git"
   },
   "bugs": {
     "url": "https://github.com/independo-gmbh/capacitor-voice-recorder/issues"
