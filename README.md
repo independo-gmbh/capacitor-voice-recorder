@@ -27,6 +27,7 @@ npx cap sync
 Add the following to your `Info.plist`:
 
 ```xml
+
 <key>NSMicrophoneUsageDescription</key>
 <string>This app uses the microphone to record audio.</string>
 ```
@@ -208,6 +209,15 @@ const audioRef = new Audio(`data:${mimeType};base64,${base64Sound}`)
 audioRef.oncanplaythrough = () => audioRef.play()
 audioRef.load()
 ```
+
+## Compatibility
+
+Versioning follows Capacitor versioning. Major versions of the plugin are compatible with major versions of Capacitor.
+
+| Plugin Version | Capacitor Version |
+|----------------|-------------------|
+| 5.*            | 5                 |
+| 6.*            | 6                 |
 
 ## Collaborators
 
