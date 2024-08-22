@@ -134,7 +134,7 @@
             {
               "type": "chore",
               "section": "Miscellaneous Chores \uD83D\uDEE0\uFE0F",
-              "hidden": true
+              "hidden": false
             },
             {
               "type": "wip",
