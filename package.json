@@ -1,6 +1,6 @@
 {
   "name": "@independo/capacitor-voice-recorder",
-  "version": "6.0.6-dev.2",
+  "version": "6.0.7-dev.1",
   "description": "Capacitor plugin for voice recording",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
