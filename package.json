@@ -81,7 +81,7 @@
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "eslint": "^8.49.0",
     "prettier": "~2.8.8",
-    "prettier-plugin-java": "~2.1.0",
+    "prettier-plugin-java": "~2.6.7",
     "rimraf": "^6.0.1",
     "rollup": "^4.19.2",
     "semantic-release": "^24.0.0",
