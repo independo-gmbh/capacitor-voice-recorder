@@ -218,6 +218,7 @@ Versioning follows Capacitor versioning. Major versions of the plugin are compat
 |----------------|-------------------|
 | 5.*            | 5                 |
 | 6.*            | 6                 |
+| 7.*            | 7                 |
 
 ## Collaborators
 
