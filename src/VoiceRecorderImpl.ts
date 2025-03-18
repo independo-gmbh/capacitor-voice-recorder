@@ -1,6 +1,5 @@
 import {Filesystem} from '@capacitor/filesystem';
 import write_blob from 'capacitor-blob-writer';
-import getBlobDuration from 'get-blob-duration';
 
 import type {
     Base64String,
@@ -9,6 +8,7 @@ import type {
     RecordingData,
     RecordingOptions,
 } from './definitions';
+import getBlobDuration from "./helper/get-blob-duration";
 import {
     alreadyRecordingError,
     couldNotQueryPermissionStatusError,

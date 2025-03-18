@@ -1,6 +1,6 @@
 {
   "name": "@independo/capacitor-voice-recorder",
-  "version": "7.1.0",
+  "version": "7.1.1-dev.1",
   "description": "Capacitor plugin for voice recording",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -63,14 +63,13 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "capacitor-blob-writer": "^1.1.19",
-    "get-blob-duration": "^1.2.0"
+    "capacitor-blob-writer": "^1.1.19"
   },
   "devDependencies": {
     "@capacitor/android": "^7.1.0",
-    "@capacitor/ios": "^7.1.0",
     "@capacitor/core": "^7.1.0",
     "@capacitor/docgen": "^0.3.0",
+    "@capacitor/ios": "^7.1.0",
     "@ionic/eslint-config": "^0.4.0",
     "@ionic/prettier-config": "^4.0.0",
     "@ionic/swiftlint-config": "^2.0.0",
