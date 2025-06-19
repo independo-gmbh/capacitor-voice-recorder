@@ -1,5 +1,7 @@
 # Based on https://github.com/ionic-team/capacitor-plugins/blob/main/.github/workflows/ci.yml
 name: "CI"
+permissions:
+  contents: read
 on:
   push:
     branches:
