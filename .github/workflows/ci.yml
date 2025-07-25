@@ -32,12 +32,35 @@ jobs:
       - run: npm ci
       - run: npm run lint
 
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    name: "Unit Tests"
+    needs:
+      - lint
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - uses: actions/checkout@v4
+      - name: Restore Dependency Cache
+        id: cache-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            */node_modules
+          key: ${{ runner.os }}-dependency-caching-${{ hashFiles('package.json', '*/package.json') }}
+      - run: npm ci
+      - run: npm test
+
   verify-ios:
     runs-on: macos-14
     timeout-minutes: 30
     name: "iOS Verification"
     needs:
       - lint
+      - test
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_15.0.app
       - uses: actions/setup-node@v4
@@ -61,6 +84,7 @@ jobs:
     name: "Android Verification"
     needs:
       - lint
+      - test
     steps:
       - uses: actions/setup-node@v4
         with:
@@ -88,6 +112,7 @@ jobs:
     name: "Web Verification"
     needs:
       - lint
+      - test
     steps:
       - uses: actions/setup-node@v4
         with:
