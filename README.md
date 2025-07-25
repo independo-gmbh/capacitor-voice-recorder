@@ -42,165 +42,234 @@ Add the following to your `Info.plist`:
 
 ## Overview
 
-The `@independo/capacitor-voice-recorder` plugin allows you to record audio on Android, iOS, and Web platforms. Below is
-a summary
-of the key methods and how to use them.
+The `@independo/capacitor-voice-recorder` plugin allows you to record audio on Android, iOS, and Web platforms.
 
-### Checking Device Capabilities and Permissions
+## API
 
-#### canDeviceVoiceRecord
+Below is an index of all available methods. Run `npm run docgen` after updating any JSDoc comments to refresh this section.
 
-Checks if the device/browser can record audio.
+<docgen-index>
+
+* [`canDeviceVoiceRecord()`](#candevicevoicerecord)
+* [`requestAudioRecordingPermission()`](#requestaudiorecordingpermission)
+* [`hasAudioRecordingPermission()`](#hasaudiorecordingpermission)
+* [`startRecording(...)`](#startrecording)
+* [`stopRecording()`](#stoprecording)
+* [`pauseRecording()`](#pauserecording)
+* [`resumeRecording()`](#resumerecording)
+* [`getCurrentStatus()`](#getcurrentstatus)
+* [Interfaces](#interfaces)
+* [Type Aliases](#type-aliases)
+* [Enums](#enums)
+
+</docgen-index>
+
+<docgen-api>
+<!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
+
+Interface for the VoiceRecorderPlugin which provides methods to record audio.
+
+### canDeviceVoiceRecord()
 
 ```typescript
-VoiceRecorder.canDeviceVoiceRecord().then((result: GenericResponse) => console.log(result.value));
+canDeviceVoiceRecord() => Promise<GenericResponse>
 ```
 
-| Return Value       | Description                                                                            |
-|--------------------|----------------------------------------------------------------------------------------|
-| `{ value: true }`  | The device/browser can record audio.                                                   |
-| `{ value: false }` | The browser cannot record audio. Note: On mobile, it always returns `{ value: true }`. |
+Checks if the current device can record audio.
+On mobile, this function will always resolve to `{ value: true }`.
+In a browser, it will resolve to `{ value: true }` or `{ value: false }` based on the browser's ability to record.
+This method does not take into account the permission status, only if the browser itself is capable of recording at all.
 
-#### requestAudioRecordingPermission
+**Returns:** <code>Promise&lt;<a href="#genericresponse">GenericResponse</a>&gt;</code>
+
+--------------------
+
+
+### requestAudioRecordingPermission()
+
+```typescript
+requestAudioRecordingPermission() => Promise<GenericResponse>
+```
 
 Requests audio recording permission from the user.
+If the permission has already been provided, the promise will resolve with `{ value: true }`.
+Otherwise, the promise will resolve to `{ value: true }` or `{ value: false }` based on the user's response.
+
+**Returns:** <code>Promise&lt;<a href="#genericresponse">GenericResponse</a>&gt;</code>
+
+--------------------
+
+
+### hasAudioRecordingPermission()
 
 ```typescript
-VoiceRecorder.requestAudioRecordingPermission().then((result: GenericResponse) => console.log(result.value));
+hasAudioRecordingPermission() => Promise<GenericResponse>
 ```
 
-| Return Value       | Description         |
-|--------------------|---------------------|
-| `{ value: true }`  | Permission granted. |
-| `{ value: false }` | Permission denied.  |
+Checks if audio recording permission has been granted.
+Will resolve to `{ value: true }` or `{ value: false }` based on the status of the permission.
+The web implementation of this plugin uses the Permissions API, which is not widespread.
+If the status of the permission cannot be checked, the promise will reject with `COULD_NOT_QUERY_PERMISSION_STATUS`.
+In that case, use `requestAudioRecordingPermission` or `startRecording` and capture any exception that is thrown.
 
-#### hasAudioRecordingPermission
+**Returns:** <code>Promise&lt;<a href="#genericresponse">GenericResponse</a>&gt;</code>
 
-Checks if the audio recording permission has been granted.
+--------------------
+
+
+### startRecording(...)
 
 ```typescript
-VoiceRecorder.hasAudioRecordingPermission().then((result: GenericResponse) => console.log(result.value));
+startRecording(options?: RecordingOptions | undefined) => Promise<GenericResponse>
 ```
 
-| Return Value                        | Description                        |
-|-------------------------------------|------------------------------------|
-| `{ value: true }`                   | Permission granted.                |
-| `{ value: false }`                  | Permission denied.                 |
-| Error Code                          | Description                        |
-| `COULD_NOT_QUERY_PERMISSION_STATUS` | Failed to query permission status. |
+Starts audio recording.
+On success, the promise will resolve to { value: true }.
+On error, the promise will reject with one of the following error codes:
+"MISSING_PERMISSION", "ALREADY_RECORDING", "MICROPHONE_BEING_USED", "DEVICE_CANNOT_VOICE_RECORD", or "FAILED_TO_RECORD".
 
-### Managing Recording
+| Param         | Type                                                          | Description                    |
+| ------------- | ------------------------------------------------------------- | ------------------------------ |
+| **`options`** | <code><a href="#recordingoptions">RecordingOptions</a></code> | The options for the recording. |
 
-#### startRecording
+**Returns:** <code>Promise&lt;<a href="#genericresponse">GenericResponse</a>&gt;</code>
 
-Starts the audio recording.
+--------------------
+
+
+### stopRecording()
 
 ```typescript
-VoiceRecorder.startRecording(options?: RecordingOptions)
-    .then((result: GenericResponse) => console.log(result.value))
-    .catch(error => console.log(error));
+stopRecording() => Promise<RecordingData>
 ```
 
-| Option            | Description                                                                                          |
-|-------------------|------------------------------------------------------------------------------------------------------|
-| directory         | Specifies a Capacitor Filesystem [Directory](https://capacitorjs.com/docs/apis/filesystem#directory) |
-| subDirectory      | Specifies a custom sub-directory (optional)                                                          |
+Stops audio recording.
+Will stop the recording that has been previously started.
+If the function `startRecording` has not been called beforehand, the promise will reject with `RECORDING_HAS_NOT_STARTED`.
+If the recording has been stopped immediately after it has been started, the promise will reject with `EMPTY_RECORDING`.
+In a case of unknown error, the promise will reject with `FAILED_TO_FETCH_RECORDING`.
+In case of success, the promise resolves to <a href="#recordingdata">RecordingData</a> containing the recording in base-64, the duration of the recording in milliseconds, and the MIME type.
 
-| Return Value      | Description                     |
-|-------------------|---------------------------------|
-| `{ value: true }` | Recording started successfully. |
+**Returns:** <code>Promise&lt;<a href="#recordingdata">RecordingData</a>&gt;</code>
 
-| Error Code                   | Description                              |
-|------------------------------|------------------------------------------|
-| `MISSING_PERMISSION`         | Required permission is missing.          |
-| `DEVICE_CANNOT_VOICE_RECORD` | Device/browser cannot record audio.      |
-| `ALREADY_RECORDING`          | A recording is already in progress.      |
-| `MICROPHONE_BEING_USED`      | Microphone is being used by another app. |
-| `FAILED_TO_RECORD`           | Unknown error occurred during recording. |
+--------------------
 
-#### stopRecording
 
-Stops the audio recording and returns the recording data.
-
-When a `directory` option has been passed to the `VoiceRecorder.startRecording` method the data will include a `uri` instead of a `recordDataBase64`
-
-Optional options can be used with this method to save the file in the device's filesystem and return a uri to that file instead of a base64 string.
-This greatly increases performance for large files.
+### pauseRecording()
 
 ```typescript
-VoiceRecorder.stopRecording()
-    .then((result: RecordingData) => console.log(result.value))
-    .catch(error => console.log(error));
+pauseRecording() => Promise<GenericResponse>
 ```
-
-| Return Value       | Description                                    |
-|--------------------|------------------------------------------------|
-| `recordDataBase64` | The recorded audio data in Base64 format.      |
-| `msDuration`       | The duration of the recording in milliseconds. |
-| `mimeType`         | The MIME type of the recorded audio.           |
-| `uri`              | The URI to the audio file                      |
-
-| Error Code                  | Description                                          |
-|-----------------------------|------------------------------------------------------|
-| `RECORDING_HAS_NOT_STARTED` | No recording in progress.                            |
-| `EMPTY_RECORDING`           | Recording stopped immediately after starting.        |
-| `FAILED_TO_FETCH_RECORDING` | Unknown error occurred while fetching the recording. |
-
-#### pauseRecording
 
 Pauses the ongoing audio recording.
+If the recording has not started yet, the promise will reject with an error code `RECORDING_HAS_NOT_STARTED`.
+On success, the promise will resolve to { value: true } if the pause was successful or { value: false } if the recording is already paused.
+On certain mobile OS versions, this function is not supported and will reject with `NOT_SUPPORTED_OS_VERSION`.
+
+**Returns:** <code>Promise&lt;<a href="#genericresponse">GenericResponse</a>&gt;</code>
+
+--------------------
+
+
+### resumeRecording()
 
 ```typescript
-VoiceRecorder.pauseRecording()
-    .then((result: GenericResponse) => console.log(result.value))
-    .catch(error => console.log(error));
+resumeRecording() => Promise<GenericResponse>
 ```
-
-| Return Value       | Description                    |
-|--------------------|--------------------------------|
-| `{ value: true }`  | Recording paused successfully. |
-| `{ value: false }` | Recording is already paused.   |
-
-| Error Code                  | Description                                        |
-|-----------------------------|----------------------------------------------------|
-| `RECORDING_HAS_NOT_STARTED` | No recording in progress.                          |
-| `NOT_SUPPORTED_OS_VERSION`  | Operation not supported on the current OS version. |
-
-#### resumeRecording
 
 Resumes a paused audio recording.
+If the recording has not started yet, the promise will reject with an error code `RECORDING_HAS_NOT_STARTED`.
+On success, the promise will resolve to { value: true } if the resume was successful or { value: false } if the recording is already running.
+On certain mobile OS versions, this function is not supported and will reject with `NOT_SUPPORTED_OS_VERSION`.
+
+**Returns:** <code>Promise&lt;<a href="#genericresponse">GenericResponse</a>&gt;</code>
+
+--------------------
+
+
+### getCurrentStatus()
 
 ```typescript
-VoiceRecorder.resumeRecording()
-    .then((result: GenericResponse) => console.log(result.value))
-    .catch(error => console.log(error));
+getCurrentStatus() => Promise<CurrentRecordingStatus>
 ```
 
-| Return Value       | Description                     |
-|--------------------|---------------------------------|
-| `{ value: true }`  | Recording resumed successfully. |
-| `{ value: false }` | Recording is already running.   |
+Gets the current status of the voice recorder.
+Will resolve with one of the following values:
+`{ status: "NONE" }` if the plugin is idle and waiting to start a new recording.
+`{ status: "RECORDING" }` if the plugin is in the middle of recording.
+`{ status: "PAUSED" }` if the recording is paused.
 
-| Error Code                  | Description                                        |
-|-----------------------------|----------------------------------------------------|
-| `RECORDING_HAS_NOT_STARTED` | No recording in progress.                          |
-| `NOT_SUPPORTED_OS_VERSION`  | Operation not supported on the current OS version. |
+**Returns:** <code>Promise&lt;<a href="#currentrecordingstatus">CurrentRecordingStatus</a>&gt;</code>
 
-#### getCurrentStatus
+--------------------
 
-Retrieves the current status of the recorder.
 
-```typescript
-VoiceRecorder.getCurrentStatus()
-    .then((result: CurrentRecordingStatus) => console.log(result.status))
-    .catch(error => console.log(error));
-```
+### Interfaces
 
-| Status Code | Description                                          |
-|-------------|------------------------------------------------------|
-| `NONE`      | Plugin is idle and waiting to start a new recording. |
-| `RECORDING` | Plugin is currently recording.                       |
-| `PAUSED`    | Recording is paused.                                 |
+
+#### GenericResponse
+
+Interface representing a generic response with a boolean value.
+
+| Prop        | Type                 | Description                                     |
+| ----------- | -------------------- | ----------------------------------------------- |
+| **`value`** | <code>boolean</code> | The result of the operation as a boolean value. |
+
+
+#### RecordingOptions
+
+Can be used to specify options for the recording.
+
+| Prop               | Type                                            | Description                                                                                                                                                                                                        |
+| ------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`directory`**    | <code><a href="#directory">Directory</a></code> | The capacitor filesystem directory where the recording should be saved. If not specified, the recording will be stored in a base64 string and returned in the <a href="#recordingdata">`RecordingData`</a> object. |
+| **`subDirectory`** | <code>string</code>                             | An optional subdirectory in the specified directory where the recording should be saved.                                                                                                                           |
+
+
+#### RecordingData
+
+Interface representing the data of a recording.
+
+| Prop        | Type                                                                                           | Description                                 |
+| ----------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **`value`** | <code>{ recordDataBase64: string; msDuration: number; mimeType: string; uri?: string; }</code> | The value containing the recording details. |
+
+
+#### CurrentRecordingStatus
+
+Interface representing the current status of the voice recorder.
+
+| Prop         | Type                                           | Description                                                                                                  |
+| ------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **`status`** | <code>'RECORDING' \| 'PAUSED' \| 'NONE'</code> | The current status of the recorder, which can be one of the following values: 'RECORDING', 'PAUSED', 'NONE'. |
+
+
+### Type Aliases
+
+
+#### Base64String
+
+Represents a Base64 encoded string.
+
+<code>string</code>
+
+
+### Enums
+
+
+#### Directory
+
+| Members               | Value                           | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Since |
+| --------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`Documents`**       | <code>"DOCUMENTS"</code>        | The Documents directory. On iOS it's the app's documents directory. Use this directory to store user-generated content. On Android it's the Public Documents folder, so it's accessible from other apps. It's not accesible on Android 10 unless the app enables legacy External Storage by adding `android:requestLegacyExternalStorage="true"` in the `application` tag in the `AndroidManifest.xml`. On Android 11 or newer the app can only access the files/folders the app created. | 1.0.0 |
+| **`Data`**            | <code>"DATA"</code>             | The Data directory. On iOS it will use the Documents directory. On Android it's the directory holding application files. Files will be deleted when the application is uninstalled.                                                                                                                                                                                                                                                                                                       | 1.0.0 |
+| **`Library`**         | <code>"LIBRARY"</code>          | The Library directory. On iOS it will use the Library directory. On Android it's the directory holding application files. Files will be deleted when the application is uninstalled.                                                                                                                                                                                                                                                                                                      | 1.1.0 |
+| **`Cache`**           | <code>"CACHE"</code>            | The Cache directory. Can be deleted in cases of low memory, so use this directory to write app-specific files. that your app can re-create easily.                                                                                                                                                                                                                                                                                                                                        | 1.0.0 |
+| **`External`**        | <code>"EXTERNAL"</code>         | The external directory. On iOS it will use the Documents directory. On Android it's the directory on the primary shared/external storage device where the application can place persistent files it owns. These files are internal to the applications, and not typically visible to the user as media. Files will be deleted when the application is uninstalled.                                                                                                                        | 1.0.0 |
+| **`ExternalStorage`** | <code>"EXTERNAL_STORAGE"</code> | The external storage directory. On iOS it will use the Documents directory. On Android it's the primary shared/external storage directory. It's not accesible on Android 10 unless the app enables legacy External Storage by adding `android:requestLegacyExternalStorage="true"` in the `application` tag in the `AndroidManifest.xml`. It's not accesible on Android 11 or newer.                                                                                                      | 1.0.0 |
+
+</docgen-api>
+
 
 ## Format and Mime type
 
