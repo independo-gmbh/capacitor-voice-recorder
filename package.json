@@ -60,16 +60,17 @@
     "build": "npm run clean && npm run docgen && tsc && rollup -c rollup.config.mjs",
     "clean": "rm -rf dist",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "upgrade": "npx npm-check-updates -u"
   },
   "dependencies": {
     "capacitor-blob-writer": "^1.1.19"
   },
   "devDependencies": {
-    "@capacitor/android": "^7.1.0",
-    "@capacitor/core": "^7.1.0",
+    "@capacitor/core": "^7.4.2",
+    "@capacitor/android": "^7.4.2",
+    "@capacitor/ios": "^7.4.2",
     "@capacitor/docgen": "^0.3.0",
-    "@capacitor/ios": "^7.1.0",
     "@ionic/eslint-config": "^0.4.0",
     "@ionic/prettier-config": "^4.0.0",
     "@ionic/swiftlint-config": "^2.0.0",
