@@ -5,6 +5,12 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "daily"
+    groups:
+      angular:
+        patterns:
+          - "@capacitor/*"
+          - "@ionic/*"
+          - "@semantic-release/*"
 
   - package-ecosystem: "gradle"
     directory: "/android"
