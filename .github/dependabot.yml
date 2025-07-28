@@ -4,22 +4,26 @@ updates:
     directory: "/"
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     groups:
-      angular:
+      capacitor:
         patterns:
           - "@capacitor/*"
+      ionic:
+        patterns:
           - "@ionic/*"
-          - "@semantic-release/*"
+      semantic-release:
+        patterns:
+          - "*semantic-release*"
 
   - package-ecosystem: "gradle"
     directory: "/android"
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
 
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
