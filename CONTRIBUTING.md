@@ -50,6 +50,10 @@ This template is integrated with ESLint, Prettier, and SwiftLint. Using these to
 the [Capacitor Community](https://github.com/capacitor-community/) strives to have consistent code style and structure
 for easier cooperation.
 
+#### `npm test`
+
+Run the unit test suite. New features should include corresponding tests and existing tests should pass before submitting a pull request.
+
 ## Publishing
 
 There is a `prepublishOnly` hook in `package.json` which prepares the plugin before publishing, so all you need to do is
