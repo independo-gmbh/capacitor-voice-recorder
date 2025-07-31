@@ -89,7 +89,7 @@
     "swiftlint": "^2.0.0",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
-    "@types/node": "^16.18.0"
+    "@types/node": "^24.1.0"
   },
   "peerDependencies": {
     "@capacitor/core": ">=7.0.0",
