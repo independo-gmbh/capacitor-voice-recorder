@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -66,7 +66,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -90,11 +90,11 @@ jobs:
         with:
           node-version: 20.x
       - name: set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'zulu'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -117,7 +117,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -141,7 +141,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -168,7 +168,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
