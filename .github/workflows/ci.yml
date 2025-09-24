@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 30
     name: "Linting"
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.x
       - uses: actions/checkout@v5
@@ -39,7 +39,7 @@ jobs:
     needs:
       - lint
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.x
       - uses: actions/checkout@v5
@@ -63,7 +63,7 @@ jobs:
       - test
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_15.0.app
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.x
       - uses: actions/checkout@v5
@@ -86,7 +86,7 @@ jobs:
       - lint
       - test
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.x
       - name: set up JDK 21
@@ -114,7 +114,7 @@ jobs:
       - lint
       - test
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.x
       - uses: actions/checkout@v5
@@ -138,7 +138,7 @@ jobs:
       - verify-ios
       - verify-android
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.x
       - uses: actions/checkout@v5
@@ -165,7 +165,7 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.x
       - uses: actions/checkout@v5
