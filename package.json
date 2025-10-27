@@ -85,7 +85,7 @@
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
     "rollup": "^4.34.3",
-    "semantic-release": "^24.2.3",
+    "semantic-release": "^25.0.1",
     "swiftlint": "^2.0.0",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
