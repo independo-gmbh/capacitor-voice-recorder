@@ -13,14 +13,14 @@ on:
 
 jobs:
   lint:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 30
     name: "Linting"
     steps:
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20.x
-      - uses: actions/checkout@v5
+          node-version: 24
+      - uses: actions/checkout@v6
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -39,10 +39,10 @@ jobs:
     needs:
       - lint
     steps:
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20.x
-      - uses: actions/checkout@v5
+          node-version: 24
+      - uses: actions/checkout@v6
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -55,18 +55,18 @@ jobs:
       - run: npm test
 
   verify-ios:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 30
     name: "iOS Verification"
     needs:
       - lint
       - test
     steps:
-      - run: sudo xcode-select --switch /Applications/Xcode_15.0.app
-      - uses: actions/setup-node@v5
+      - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20.x
-      - uses: actions/checkout@v5
+          node-version: 24
+      - uses: actions/checkout@v6
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -86,15 +86,15 @@ jobs:
       - lint
       - test
     steps:
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20.x
+          node-version: 24
       - name: set up JDK 21
         uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'zulu'
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -114,10 +114,10 @@ jobs:
       - lint
       - test
     steps:
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20.x
-      - uses: actions/checkout@v5
+          node-version: 24
+      - uses: actions/checkout@v6
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -138,10 +138,10 @@ jobs:
       - verify-ios
       - verify-android
     steps:
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20.x
-      - uses: actions/checkout@v5
+          node-version: 24
+      - uses: actions/checkout@v6
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
@@ -165,10 +165,10 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20.x
-      - uses: actions/checkout@v5
+          node-version: 24
+      - uses: actions/checkout@v6
       - name: Restore Dependency Cache
         id: cache-modules
         uses: actions/cache@v4
