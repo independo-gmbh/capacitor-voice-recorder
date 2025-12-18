@@ -20,6 +20,10 @@ npm install --save @independo/capacitor-voice-recorder
 npx cap sync
 ```
 
+## Requirements
+
+- Android builds require Java 21 (recommended). `npm run verify:android` requires a Java version supported by the bundled Gradle wrapper (currently up to Java 24).
+
 ## Configuration
 
 ### Using with Android
@@ -310,6 +314,7 @@ Versioning follows Capacitor versioning. Major versions of the plugin are compat
 | 5.*            | 5                 |
 | 6.*            | 6                 |
 | 7.*            | 7                 |
+| 8.*            | 8                 |
 
 ## Collaborators
 
@@ -317,4 +322,3 @@ Versioning follows Capacitor versioning. Major versions of the plugin are compat
 |--------------------|-------------------------------------------------------------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | Avihu Harush       | Original Author                                             | [tchvu3](https://github.com/tchvu3)       | [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/tchvu3) |
 | Konstantin Strümpf | Contributor for [Independo GmbH](https://www.independo.app) | [kstruempf](https://github.com/kstruempf) |                                                                                                                                   |
-
