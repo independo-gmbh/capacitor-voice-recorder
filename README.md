@@ -22,8 +22,7 @@ npx cap sync
 
 ## Requirements
 
-- Android builds require Java 21 (recommended). `npm run verify:android` requires a Java version supported by the bundled Gradle wrapper (currently up to Java 24).
-
+- Android builds require Java 21 (recommended). `npm run verify:android` requires a Java version supported by the bundled Gradle wrapper (currently Java 21–24, with Java 21 recommended).
 ## Configuration
 
 ### Using with Android
