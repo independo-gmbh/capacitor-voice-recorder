@@ -50,7 +50,7 @@
   "scripts": {
     "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
     "verify:ios": "cd ios && pod install && xcodebuild -workspace Plugin.xcworkspace -scheme Plugin -destination generic/platform=iOS && cd ..",
-    "verify:android": "cd android && ./gradlew clean build test && cd ..",
+    "verify:android": "node scripts/verify-android.js",
     "verify:web": "npm run build",
     "lint": "npm run eslint",
     "fmt": "npm run eslint -- --fix",
@@ -68,10 +68,10 @@
     "capacitor-blob-writer": "^1.1.19"
   },
   "devDependencies": {
-    "@capacitor/android": "^7.4.4",
-    "@capacitor/core": "^7.4.4",
-    "@capacitor/docgen": "^0.3.0",
-    "@capacitor/ios": "^7.4.4",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/docgen": "^0.3.1",
+    "@capacitor/ios": "^8.0.0",
     "@ionic/eslint-config": "^0.4.0",
     "@ionic/prettier-config": "^4.0.0",
     "@ionic/swiftlint-config": "^2.0.0",
@@ -79,22 +79,22 @@
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.10.1",
+    "@types/node": "^25.0.3",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "eslint": "^8.57.0",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
-    "rollup": "^4.53.3",
+    "rollup": "^4.53.5",
     "semantic-release": "^25.0.2",
     "swiftlint": "^2.0.0",
-    "ts-jest": "^29.4.5",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@capacitor/core": ">=7.0.0",
-    "@capacitor/filesystem": ">=7.0.0"
+    "@capacitor/core": ">=8.0.0",
+    "@capacitor/filesystem": ">=8.0.0"
   },
   "prettier": "@ionic/prettier-config",
   "swiftlint": "@ionic/swiftlint-config",
