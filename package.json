@@ -1,42 +1,85 @@
 {
-  "name": "@independo/capacitor-voice-recorder",
-  "version": "8.0.0-dev.2",
-  "description": "Capacitor plugin for voice recording",
-  "main": "dist/plugin.cjs.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
-  "unpkg": "dist/plugin.js",
-  "files": [
+  "capacitor" : {
+    "ios" : {
+      "src" : "ios"
+    },
+    "android" : {
+      "src" : "android"
+    }
+  },
+  "prettier" : "@ionic/prettier-config",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/independo-gmbh/capacitor-voice-recorder.git"
+  },
+  "description" : "Capacitor plugin for voice recording",
+  "version" : "8.0.0-dev.1",
+  "devDependencies" : {
+    "@capacitor/android" : "^8.0.0",
+    "conventional-changelog-conventionalcommits" : "^9.1.0",
+    "@capacitor/core" : "^8.0.0",
+    "jest-environment-jsdom" : "^30.2.0",
+    "jest" : "^30.2.0",
+    "rollup" : "^4.53.5",
+    "eslint" : "^8.57.0",
+    "@capacitor/ios" : "^8.0.0",
+    "@semantic-release/git" : "^10.0.1",
+    "@ionic/swiftlint-config" : "^2.0.0",
+    "swiftlint" : "^2.0.0",
+    "@typescript-eslint/parser" : "^5.62.0",
+    "typescript" : "^5.9.3",
+    "@semantic-release/changelog" : "^6.0.3",
+    "@types/node" : "^25.0.3",
+    "@saithodev/semantic-release-backmerge" : "^4.0.1",
+    "@capacitor/docgen" : "^0.3.1",
+    "semantic-release" : "^25.0.2",
+    "@typescript-eslint/eslint-plugin" : "^5.62.0",
+    "@types/jest" : "^30.0.0",
+    "@ionic/prettier-config" : "^4.0.0",
+    "@ionic/eslint-config" : "^0.4.0",
+    "ts-jest" : "^29.4.6"
+  },
+  "main" : "dist/plugin.cjs.js",
+  "files" : [
     "android/src/main/",
     "android/build.gradle",
     "dist/",
-    "ios/Plugin/",
-    "IndependoCapacitorVoiceRecorder.podspec"
+    "IndependoCapacitorVoiceRecorder.podspec",
+    "ios/Sources",
+    "Package.swift"
   ],
-  "contributors": [
-    {
-      "name": "Avihu Harush",
-      "email": "tchvu3@gmail.com"
-    },
-    {
-      "name": "Independo GmbH",
-      "email": "admin@independo.app"
-    }
-  ],
-  "author": "Independo GmbH",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/independo-gmbh/capacitor-voice-recorder.git"
+  "author" : "Independo GmbH",
+  "types" : "dist/esm/index.d.ts",
+  "bugs" : {
+    "url" : "https://github.com/independo-gmbh/capacitor-voice-recorder/issues"
   },
-  "bugs": {
-    "url": "https://github.com/independo-gmbh/capacitor-voice-recorder/issues"
+  "scripts" : {
+    "upgrade" : "npx npm-check-updates -u",
+    "build" : "npm run clean && npm run docgen && tsc && rollup -c rollup.config.mjs",
+    "lint" : "npm run eslint",
+    "prepublishOnly" : "npm run build",
+    "verify" : "npm run verify:ios && npm run verify:android && npm run verify:web",
+    "verify:android" : "node scripts/verify-android.js",
+    "watch" : "tsc --watch",
+    "test" : "jest",
+    "eslint" : "eslint . --ext ts",
+    "verify:ios" : "xcodebuild -scheme IndependoCapacitorVoiceRecorder -destination generic/platform=iOS",
+    "clean" : "rm -rf dist",
+    "verify:web" : "npm run build",
+    "swiftlint" : "node-swiftlint",
+    "docgen" : "docgen --api VoiceRecorderPlugin --output-readme README.md --output-json dist/docs.json",
+    "fmt" : "npm run eslint -- --fix"
   },
-  "publishConfig": {
-    "provenance": true,
-    "access": "public"
+  "eslintConfig" : {
+    "extends" : "@ionic/eslint-config/recommended"
   },
-  "keywords": [
+  "name" : "@independo/capacitor-voice-recorder",
+  "dependencies" : {
+    "capacitor-blob-writer" : "^1.1.19"
+  },
+  "swiftlint" : "@ionic/swiftlint-config",
+  "license" : "MIT",
+  "keywords" : [
     "capacitor",
     "plugin",
     "native",
@@ -47,66 +90,24 @@
     "ios",
     "android"
   ],
-  "scripts": {
-    "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
-    "verify:ios": "cd ios && pod install && xcodebuild -workspace Plugin.xcworkspace -scheme Plugin -destination generic/platform=iOS && cd ..",
-    "verify:android": "node scripts/verify-android.js",
-    "verify:web": "npm run build",
-    "lint": "npm run eslint",
-    "fmt": "npm run eslint -- --fix",
-    "eslint": "eslint . --ext ts",
-    "swiftlint": "node-swiftlint",
-    "test": "jest",
-    "docgen": "docgen --api VoiceRecorderPlugin --output-readme README.md --output-json dist/docs.json",
-    "build": "npm run clean && npm run docgen && tsc && rollup -c rollup.config.mjs",
-    "clean": "rm -rf dist",
-    "watch": "tsc --watch",
-    "prepublishOnly": "npm run build",
-    "upgrade": "npx npm-check-updates -u"
+  "publishConfig" : {
+    "provenance" : true,
+    "access" : "public"
   },
-  "dependencies": {
-    "capacitor-blob-writer": "^1.1.19"
-  },
-  "devDependencies": {
-    "@capacitor/android": "^8.0.0",
-    "@capacitor/core": "^8.0.0",
-    "@capacitor/docgen": "^0.3.1",
-    "@capacitor/ios": "^8.0.0",
-    "@ionic/eslint-config": "^0.4.0",
-    "@ionic/prettier-config": "^4.0.0",
-    "@ionic/swiftlint-config": "^2.0.0",
-    "@saithodev/semantic-release-backmerge": "^4.0.1",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^25.0.3",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
-    "conventional-changelog-conventionalcommits": "^9.1.0",
-    "eslint": "^8.57.0",
-    "jest": "^30.2.0",
-    "jest-environment-jsdom": "^30.2.0",
-    "rollup": "^4.53.5",
-    "semantic-release": "^25.0.2",
-    "swiftlint": "^2.0.0",
-    "ts-jest": "^29.4.6",
-    "typescript": "^5.9.3"
-  },
-  "peerDependencies": {
-    "@capacitor/core": ">=8.0.0",
-    "@capacitor/filesystem": ">=8.0.0"
-  },
-  "prettier": "@ionic/prettier-config",
-  "swiftlint": "@ionic/swiftlint-config",
-  "eslintConfig": {
-    "extends": "@ionic/eslint-config/recommended"
-  },
-  "capacitor": {
-    "ios": {
-      "src": "ios"
+  "unpkg" : "dist/plugin.js",
+  "contributors" : [
+    {
+      "email" : "tchvu3@gmail.com",
+      "name" : "Avihu Harush"
     },
-    "android": {
-      "src": "android"
+    {
+      "email" : "admin@independo.app",
+      "name" : "Independo GmbH"
     }
-  }
+  ],
+  "peerDependencies" : {
+    "@capacitor/filesystem" : ">=8.0.0",
+    "@capacitor/core" : ">=8.0.0"
+  },
+  "module" : "dist/esm/index.js"
 }
