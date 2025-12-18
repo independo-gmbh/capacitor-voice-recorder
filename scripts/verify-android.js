@@ -1,16 +1,16 @@
-const { spawnSync } = require('node:child_process');
+const {spawnSync} = require('node:child_process');
 
 function getJavaMajorVersion() {
-    const result = spawnSync('java', ['-version'], { encoding: 'utf8' });
+    const result = spawnSync('java', ['-version'], {encoding: 'utf8'});
     const output = `${result.stdout || ''}\n${result.stderr || ''}`.trim();
 
     if (result.error) {
-        return { ok: false, output, error: result.error };
+        return {ok: false, output, error: result.error};
     }
 
     const match = output.match(/version "(?<version>[^"]+)"/);
     if (!match?.groups?.version) {
-        return { ok: false, output, error: new Error('Unable to parse `java -version` output') };
+        return {ok: false, output, error: new Error('Unable to parse `java -version` output')};
     }
 
     const rawVersion = match.groups.version;
@@ -18,10 +18,10 @@ function getJavaMajorVersion() {
     const major = Number.parseInt(majorStr, 10);
 
     if (!Number.isFinite(major)) {
-        return { ok: false, output, error: new Error(`Unable to parse Java major version from "${rawVersion}"`) };
+        return {ok: false, output, error: new Error(`Unable to parse Java major version from "${rawVersion}"`)};
     }
 
-    return { ok: true, output, major };
+    return {ok: true, output, major};
 }
 
 function run() {
@@ -39,7 +39,7 @@ function run() {
 
     if (java.major >= 25) {
         // eslint-disable-next-line no-console
-        console.error(`Detected Java ${java.major}. Gradle 8.14.3 does not support Java 25+ (\"Unsupported class file major version 69\").`);
+        console.error(`Detected Java ${java.major}. The current Gradle version does not support Java 25+ (\"Unsupported class file major version 69\").`);
         // eslint-disable-next-line no-console
         console.error('Use JDK 21 (recommended) or any supported version up to JDK 24 for `npm run verify:android`.\n');
         // eslint-disable-next-line no-console
