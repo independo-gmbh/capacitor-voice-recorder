@@ -17,18 +17,12 @@ jobs:
     timeout-minutes: 30
     name: "Linting"
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - uses: actions/checkout@v6
-      - name: Restore Dependency Cache
-        id: cache-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            */node_modules
-          key: ${{ runner.os }}-dependency-caching-${{ hashFiles('package.json', '*/package.json') }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm run lint
 
@@ -39,18 +33,12 @@ jobs:
     needs:
       - lint
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - uses: actions/checkout@v6
-      - name: Restore Dependency Cache
-        id: cache-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            */node_modules
-          key: ${{ runner.os }}-dependency-caching-${{ hashFiles('package.json', '*/package.json') }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm test
 
@@ -63,19 +51,13 @@ jobs:
       - test
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - uses: actions/checkout@v6
-      - name: Restore Dependency Cache
-        id: cache-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            */node_modules
-          key: ${{ runner.os }}-dependency-caching-${{ hashFiles('package.json', '*/package.json') }}
-      - run: npm install
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - run: npm ci
       - run: npm run verify:ios
 
   verify-android:
@@ -86,23 +68,20 @@ jobs:
       - lint
       - test
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 24
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
       - name: set up JDK 21
         uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'zulu'
-      - uses: actions/checkout@v6
-      - name: Restore Dependency Cache
-        id: cache-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            */node_modules
-          key: ${{ runner.os }}-dependency-caching-${{ hashFiles('package.json', '*/package.json') }}
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36 packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
       - run: npm ci
       - run: npm run verify:android
 
@@ -114,18 +93,12 @@ jobs:
       - lint
       - test
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - uses: actions/checkout@v6
-      - name: Restore Dependency Cache
-        id: cache-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            */node_modules
-          key: ${{ runner.os }}-dependency-caching-${{ hashFiles('package.json', '*/package.json') }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm run verify:web
 
@@ -138,18 +111,12 @@ jobs:
       - verify-ios
       - verify-android
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - uses: actions/checkout@v6
-      - name: Restore Dependency Cache
-        id: cache-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            */node_modules
-          key: ${{ runner.os }}-dependency-caching-${{ hashFiles('package.json', '*/package.json') }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm run build
 
@@ -165,18 +132,12 @@ jobs:
     needs:
       - build
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - uses: actions/checkout@v6
-      - name: Restore Dependency Cache
-        id: cache-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            */node_modules
-          key: ${{ runner.os }}-dependency-caching-${{ hashFiles('package.json', '*/package.json') }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm run prepublishOnly
       - name: 'Semantic Release'
