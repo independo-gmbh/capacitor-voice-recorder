@@ -22,7 +22,18 @@ npx cap sync
 
 ## Requirements
 
+- Capacitor 8+
+- iOS 15+
+- Android minSdk 24+
 - Android builds require Java 21 (recommended). `npm run verify:android` requires a Java version supported by the bundled Gradle wrapper (currently Java 21–24, with Java 21 recommended).
+
+## iOS Package Manager Support
+
+This plugin supports both CocoaPods and Swift Package Manager (SPM) on iOS.
+
+- CocoaPods (default Capacitor iOS template): `npx cap sync ios`
+- Swift Package Manager (SPM): migrate/create your iOS app to use SPM, then run `npx cap sync ios`
+
 ## Configuration
 
 ### Using with Android
@@ -244,7 +255,7 @@ Interface representing the current status of the voice recorder.
 
 | Prop         | Type                                           | Description                                                                                                  |
 | ------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **`status`** | <code>'RECORDING' \| 'PAUSED' \| 'NONE'</code> | The current status of the recorder, which can be one of the following values: 'RECORDING', 'PAUSED', 'NONE'. |
+| **`status`** | <code>'NONE' \| 'RECORDING' \| 'PAUSED'</code> | The current status of the recorder, which can be one of the following values: 'RECORDING', 'PAUSED', 'NONE'. |
 
 
 ### Type Aliases

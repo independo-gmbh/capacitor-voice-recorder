@@ -3,7 +3,19 @@ import AVFoundation
 import Capacitor
 
 @objc(VoiceRecorder)
-public class VoiceRecorder: CAPPlugin {
+public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "VoiceRecorder"
+    public let jsName = "VoiceRecorder"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "canDeviceVoiceRecord", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "requestAudioRecordingPermission", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "hasAudioRecordingPermission", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "startRecording", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "stopRecording", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "pauseRecording", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "resumeRecording", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getCurrentStatus", returnType: CAPPluginReturnPromise),
+    ]
 
     private var customMediaRecorder: CustomMediaRecorder? = nil
 
