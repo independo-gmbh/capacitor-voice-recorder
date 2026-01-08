@@ -75,12 +75,12 @@ export interface CurrentRecordingStatus {
 /**
  * Event payload for voiceRecordingInterrupted event (empty - no data).
  */
-export interface VoiceRecordingInterruptedEvent {}
+export type VoiceRecordingInterruptedEvent = Record<string, never>;
 
 /**
  * Event payload for voiceRecordingInterruptionEnded event (empty - no data).
  */
-export interface VoiceRecordingInterruptionEndedEvent {}
+export type VoiceRecordingInterruptionEndedEvent = Record<string, never>;
 
 /**
  * Interface for the VoiceRecorderPlugin which provides methods to record audio.
@@ -176,8 +176,8 @@ export interface VoiceRecorderPlugin {
      * Listen for audio recording interruptions (e.g., phone calls, other apps using microphone).
      * Available on iOS and Android only.
      *
-     * @param eventName - The name of the event to listen for.
-     * @param listenerFunc - The callback function to invoke when the event occurs.
+     * @param eventName The name of the event to listen for.
+     * @param listenerFunc The callback function to invoke when the event occurs.
      * @returns A promise that resolves to a PluginListenerHandle.
      */
     addListener(
@@ -189,8 +189,8 @@ export interface VoiceRecorderPlugin {
      * Listen for audio recording interruption end events.
      * Available on iOS and Android only.
      *
-     * @param eventName - The name of the event to listen for.
-     * @param listenerFunc - The callback function to invoke when the event occurs.
+     * @param eventName The name of the event to listen for.
+     * @param listenerFunc The callback function to invoke when the event occurs.
      * @returns A promise that resolves to a PluginListenerHandle.
      */
     addListener(

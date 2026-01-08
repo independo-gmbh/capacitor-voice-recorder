@@ -232,10 +232,10 @@ addListener(eventName: 'voiceRecordingInterrupted', listenerFunc: (event: VoiceR
 Listen for audio recording interruptions (e.g., phone calls, other apps using microphone).
 Available on iOS and Android only.
 
-| Param              | Type                                                                                                          | Description                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **`eventName`**    | <code>'voiceRecordingInterrupted'</code>                                                                      | - The name of the event to listen for.                   |
-| **`listenerFunc`** | <code>(event: <a href="#voicerecordinginterruptedevent">VoiceRecordingInterruptedEvent</a>) =&gt; void</code> | - The callback function to invoke when the event occurs. |
+| Param              | Type                                                                                                          | Description                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **`eventName`**    | <code>'voiceRecordingInterrupted'</code>                                                                      | The name of the event to listen for.                   |
+| **`listenerFunc`** | <code>(event: <a href="#voicerecordinginterruptedevent">VoiceRecordingInterruptedEvent</a>) =&gt; void</code> | The callback function to invoke when the event occurs. |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
@@ -251,10 +251,10 @@ addListener(eventName: 'voiceRecordingInterruptionEnded', listenerFunc: (event: 
 Listen for audio recording interruption end events.
 Available on iOS and Android only.
 
-| Param              | Type                                                                                                                      | Description                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **`eventName`**    | <code>'voiceRecordingInterruptionEnded'</code>                                                                            | - The name of the event to listen for.                   |
-| **`listenerFunc`** | <code>(event: <a href="#voicerecordinginterruptionendedevent">VoiceRecordingInterruptionEndedEvent</a>) =&gt; void</code> | - The callback function to invoke when the event occurs. |
+| Param              | Type                                                                                                                      | Description                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **`eventName`**    | <code>'voiceRecordingInterruptionEnded'</code>                                                                            | The name of the event to listen for.                   |
+| **`listenerFunc`** | <code>(event: <a href="#voicerecordinginterruptionendedevent">VoiceRecordingInterruptionEndedEvent</a>) =&gt; void</code> | The callback function to invoke when the event occurs. |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
@@ -319,16 +319,6 @@ Interface representing the current status of the voice recorder.
 | **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
 
 
-#### VoiceRecordingInterruptedEvent
-
-Event payload for voiceRecordingInterrupted event (empty - no data).
-
-
-#### VoiceRecordingInterruptionEndedEvent
-
-Event payload for voiceRecordingInterruptionEnded event (empty - no data).
-
-
 ### Type Aliases
 
 
@@ -337,6 +327,27 @@ Event payload for voiceRecordingInterruptionEnded event (empty - no data).
 Represents a Base64 encoded string.
 
 <code>string</code>
+
+
+#### VoiceRecordingInterruptedEvent
+
+Event payload for voiceRecordingInterrupted event (empty - no data).
+
+<code><a href="#record">Record</a>&lt;string, never&gt;</code>
+
+
+#### Record
+
+Construct a type with a set of properties K of type T
+
+<code>{ [P in K]: T; }</code>
+
+
+#### VoiceRecordingInterruptionEndedEvent
+
+Event payload for voiceRecordingInterruptionEnded event (empty - no data).
+
+<code><a href="#record">Record</a>&lt;string, never&gt;</code>
 
 
 ### Enums

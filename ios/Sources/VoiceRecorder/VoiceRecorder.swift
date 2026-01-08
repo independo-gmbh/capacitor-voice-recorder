@@ -79,34 +79,42 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        let stopSuccess = customMediaRecorder?.stopRecording() ?? false
-        if !stopSuccess {
-            customMediaRecorder = nil
-            call.reject(Messages.FAILED_TO_MERGE_RECORDING)
-            return
-        }
+        customMediaRecorder?.stopRecording { [weak self] stopSuccess in
+            DispatchQueue.main.async {
+                guard let self = self else {
+                    call.reject(Messages.FAILED_TO_FETCH_RECORDING)
+                    return
+                }
 
-        let audioFileUrl = customMediaRecorder?.getOutputFile()
-        if(audioFileUrl == nil) {
-            customMediaRecorder = nil
-            call.reject(Messages.FAILED_TO_FETCH_RECORDING)
-            return
-        }
+                if !stopSuccess {
+                    self.customMediaRecorder = nil
+                    call.reject(Messages.FAILED_TO_MERGE_RECORDING)
+                    return
+                }
 
-        let fileExtension = audioFileUrl!.pathExtension.lowercased()
-        let mimeType = fileExtension == "m4a" ? "audio/mp4" : "audio/aac"
-        let sendDataAsBase64 = customMediaRecorder?.options?.directory == nil
-        let recordData = RecordData(
-            recordDataBase64: sendDataAsBase64 ? readFileAsBase64(audioFileUrl) : nil,
-            mimeType: mimeType,
-            msDuration: getMsDurationOfAudioFile(audioFileUrl),
-            uri: sendDataAsBase64 ? nil : audioFileUrl!.path
-        )
-        customMediaRecorder = nil
-        if (sendDataAsBase64 && recordData.recordDataBase64 == nil) || recordData.msDuration < 0 {
-            call.reject(Messages.EMPTY_RECORDING)
-        } else {
-            call.resolve(ResponseGenerator.dataResponse(recordData.toDictionary()))
+                let audioFileUrl = self.customMediaRecorder?.getOutputFile()
+                if(audioFileUrl == nil) {
+                    self.customMediaRecorder = nil
+                    call.reject(Messages.FAILED_TO_FETCH_RECORDING)
+                    return
+                }
+
+                let fileExtension = audioFileUrl!.pathExtension.lowercased()
+                let mimeType = fileExtension == "m4a" ? "audio/mp4" : "audio/aac"
+                let sendDataAsBase64 = self.customMediaRecorder?.options?.directory == nil
+                let recordData = RecordData(
+                    recordDataBase64: sendDataAsBase64 ? self.readFileAsBase64(audioFileUrl) : nil,
+                    mimeType: mimeType,
+                    msDuration: self.getMsDurationOfAudioFile(audioFileUrl),
+                    uri: sendDataAsBase64 ? nil : audioFileUrl!.path
+                )
+                self.customMediaRecorder = nil
+                if (sendDataAsBase64 && recordData.recordDataBase64 == nil) || recordData.msDuration < 0 {
+                    call.reject(Messages.EMPTY_RECORDING)
+                } else {
+                    call.resolve(ResponseGenerator.dataResponse(recordData.toDictionary()))
+                }
+            }
         }
     }
 

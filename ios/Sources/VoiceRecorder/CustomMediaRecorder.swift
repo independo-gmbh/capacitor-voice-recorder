@@ -62,24 +62,41 @@ class CustomMediaRecorder {
         }
     }
 
-    public func stopRecording() -> Bool {
-        do {
-            removeInterruptionHandling()
-            audioRecorder.stop()
-            if audioFileSegments.count > 1 {
-                if !mergeAudioSegments() {
-                    return false
+    public func stopRecording(completion: @escaping (Bool) -> Void) {
+        removeInterruptionHandling()
+        audioRecorder.stop()
+
+        let finalizeStop: (Bool) -> Void = { [weak self] success in
+            guard let self = self else {
+                completion(false)
+                return
+            }
+
+            do {
+                try self.recordingSession.setActive(false)
+                try self.recordingSession.setCategory(self.originalRecordingSessionCategory)
+            } catch {
+            }
+
+            self.originalRecordingSessionCategory = nil
+            self.audioRecorder = nil
+            self.recordingSession = nil
+            self.status = CurrentRecordingStatus.NONE
+            completion(success)
+        }
+
+        if audioFileSegments.count > 1 {
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard let self = self else {
+                    completion(false)
+                    return
+                }
+                self.mergeAudioSegments { success in
+                    finalizeStop(success)
                 }
             }
-            try recordingSession.setActive(false)
-            try recordingSession.setCategory(originalRecordingSessionCategory)
-            originalRecordingSessionCategory = nil
-            audioRecorder = nil
-            recordingSession = nil
-            status = CurrentRecordingStatus.NONE
-            return true
-        } catch {
-            return false
+        } else {
+            finalizeStop(true)
         }
     }
 
@@ -113,6 +130,7 @@ class CustomMediaRecorder {
 
     public func resumeRecording() -> Bool {
         if(status == CurrentRecordingStatus.PAUSED || status == CurrentRecordingStatus.INTERRUPTED) {
+            let wasInterrupted = status == CurrentRecordingStatus.INTERRUPTED
             do {
                 try recordingSession.setActive(true)
                 if status == CurrentRecordingStatus.INTERRUPTED {
@@ -127,6 +145,9 @@ class CustomMediaRecorder {
                 status = CurrentRecordingStatus.RECORDING
                 return true
             } catch {
+                if wasInterrupted {
+                    try? recordingSession.setActive(false)
+                }
                 return false
             }
         }
@@ -180,80 +201,134 @@ class CustomMediaRecorder {
         }
     }
 
-    private func mergeAudioSegments() -> Bool {
+    private func mergeAudioSegments(completion: @escaping (Bool) -> Void) {
         if audioFileSegments.count <= 1 {
-            return true
+            completion(true)
+            return
         }
 
         let basePathWithoutExtension = baseAudioFilePath.deletingPathExtension()
-        baseAudioFilePath = basePathWithoutExtension.appendingPathExtension("m4a")
+        let mergedFilePath = basePathWithoutExtension.appendingPathExtension("m4a")
+        let segmentURLs = audioFileSegments
+        let keys = ["tracks", "duration"]
+        let dispatchGroup = DispatchGroup()
+        let syncQueue = DispatchQueue(label: "CustomMediaRecorder.assetSyncQueue")
+        var loadedAssets = Array<AVURLAsset?>(repeating: nil, count: segmentURLs.count)
+        var loadFailed = false
 
-        let composition = AVMutableComposition()
-        guard let compositionAudioTrack = composition.addMutableTrack(
-            withMediaType: .audio,
-            preferredTrackID: kCMPersistentTrackID_Invalid
-        ) else {
-            return false
-        }
-
-        var insertTime = CMTime.zero
-
-        for segmentURL in audioFileSegments {
+        for (index, segmentURL) in segmentURLs.enumerated() {
             let asset = AVURLAsset(url: segmentURL)
-            asset.loadValuesAsynchronously(forKeys: ["tracks", "duration"]) {}
-            guard let assetTrack = asset.tracks(withMediaType: .audio).first else {
-                return false
-            }
-
-            do {
-                let timeRange = CMTimeRange(start: .zero, duration: asset.duration)
-                try compositionAudioTrack.insertTimeRange(timeRange, of: assetTrack, at: insertTime)
-                insertTime = CMTimeAdd(insertTime, asset.duration)
-            } catch {
-                return false
-            }
-        }
-
-        guard let exportSession = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetAppleM4A) else {
-            return false
-        }
-
-        let tempDirectory = getDirectoryToSaveAudioFile()
-        let tempPath = tempDirectory.appendingPathComponent("temp-merged-\(Int(Date().timeIntervalSince1970 * 1000)).m4a")
-
-        exportSession.outputURL = tempPath
-        exportSession.outputFileType = .m4a
-
-        let semaphore = DispatchSemaphore(value: 0)
-
-        exportSession.exportAsynchronously {
-            semaphore.signal()
-        }
-
-        semaphore.wait()
-
-        guard exportSession.status == .completed else {
-            return false
-        }
-
-        if !FileManager.default.fileExists(atPath: tempPath.path) {
-            return false
-        }
-
-        do {
-            if FileManager.default.fileExists(atPath: baseAudioFilePath.path) {
-                try FileManager.default.removeItem(at: baseAudioFilePath)
-            }
-            try FileManager.default.moveItem(at: tempPath, to: baseAudioFilePath)
-
-            for segmentURL in audioFileSegments {
-                if segmentURL != baseAudioFilePath && FileManager.default.fileExists(atPath: segmentURL.path) {
-                    try? FileManager.default.removeItem(at: segmentURL)
+            dispatchGroup.enter()
+            asset.loadValuesAsynchronously(forKeys: keys) {
+                var assetIsValid = true
+                for key in keys {
+                    var error: NSError?
+                    if asset.statusOfValue(forKey: key, error: &error) != .loaded {
+                        assetIsValid = false
+                        break
+                    }
+                }
+                syncQueue.async {
+                    if assetIsValid {
+                        loadedAssets[index] = asset
+                    } else {
+                        loadFailed = true
+                    }
+                    dispatchGroup.leave()
                 }
             }
-            return true
-        } catch {
-            return false
+        }
+
+        dispatchGroup.notify(queue: DispatchQueue.global(qos: .userInitiated)) { [weak self] in
+            guard let self = self else {
+                completion(false)
+                return
+            }
+
+            var assets: [AVURLAsset] = []
+            var didFail = false
+            syncQueue.sync {
+                if loadFailed || loadedAssets.contains(where: { $0 == nil }) {
+                    didFail = true
+                } else {
+                    assets = loadedAssets.compactMap { $0 }
+                }
+            }
+
+            if didFail || assets.count != segmentURLs.count {
+                completion(false)
+                return
+            }
+
+            let composition = AVMutableComposition()
+            guard let compositionAudioTrack = composition.addMutableTrack(
+                withMediaType: .audio,
+                preferredTrackID: kCMPersistentTrackID_Invalid
+            ) else {
+                completion(false)
+                return
+            }
+
+            var insertTime = CMTime.zero
+
+            for asset in assets {
+                guard let assetTrack = asset.tracks(withMediaType: .audio).first else {
+                    completion(false)
+                    return
+                }
+
+                do {
+                    let timeRange = CMTimeRange(start: .zero, duration: asset.duration)
+                    try compositionAudioTrack.insertTimeRange(timeRange, of: assetTrack, at: insertTime)
+                    insertTime = CMTimeAdd(insertTime, asset.duration)
+                } catch {
+                    completion(false)
+                    return
+                }
+            }
+
+            guard let exportSession = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetAppleM4A) else {
+                completion(false)
+                return
+            }
+
+            let tempDirectory = self.getDirectoryToSaveAudioFile()
+            let tempPath = tempDirectory.appendingPathComponent("temp-merged-\(Int(Date().timeIntervalSince1970 * 1000)).m4a")
+
+            exportSession.outputURL = tempPath
+            exportSession.outputFileType = .m4a
+
+            exportSession.exportAsynchronously {
+                guard exportSession.status == .completed else {
+                    completion(false)
+                    return
+                }
+
+                if !FileManager.default.fileExists(atPath: tempPath.path) {
+                    completion(false)
+                    return
+                }
+
+                do {
+                    if FileManager.default.fileExists(atPath: mergedFilePath.path) {
+                        try FileManager.default.removeItem(at: mergedFilePath)
+                    }
+                    try FileManager.default.moveItem(at: tempPath, to: mergedFilePath)
+
+                    for segmentURL in self.audioFileSegments {
+                        if segmentURL != mergedFilePath && FileManager.default.fileExists(atPath: segmentURL.path) {
+                            try? FileManager.default.removeItem(at: segmentURL)
+                        }
+                    }
+                    self.baseAudioFilePath = mergedFilePath
+                    completion(true)
+                } catch {
+                    if FileManager.default.fileExists(atPath: tempPath.path) {
+                        try? FileManager.default.removeItem(at: tempPath)
+                    }
+                    completion(false)
+                }
+            }
         }
     }
 

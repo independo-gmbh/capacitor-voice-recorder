@@ -97,10 +97,25 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     }
 
     public void stopRecording() {
-        mediaRecorder.stop();
-        mediaRecorder.release();
-        abandonAudioFocus();
-        currentRecordingStatus = CurrentRecordingStatus.NONE;
+        if (mediaRecorder == null) {
+            abandonAudioFocus();
+            currentRecordingStatus = CurrentRecordingStatus.NONE;
+            return;
+        }
+
+        try {
+            if (currentRecordingStatus == CurrentRecordingStatus.RECORDING
+                || currentRecordingStatus == CurrentRecordingStatus.PAUSED
+                || currentRecordingStatus == CurrentRecordingStatus.INTERRUPTED) {
+                mediaRecorder.stop();
+            }
+        } catch (IllegalStateException ignore) {
+        } finally {
+            mediaRecorder.release();
+            mediaRecorder = null;
+            abandonAudioFocus();
+            currentRecordingStatus = CurrentRecordingStatus.NONE;
+        }
     }
 
     public File getOutputFile() {
@@ -207,6 +222,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
             case AudioManager.AUDIOFOCUS_LOSS:
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                // For voice recording, ducking still degrades captured audio, so treat all loss types as interruptions.
                 if (currentRecordingStatus == CurrentRecordingStatus.RECORDING) {
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
