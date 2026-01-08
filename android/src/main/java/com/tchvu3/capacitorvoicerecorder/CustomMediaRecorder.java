@@ -1,6 +1,9 @@
 package com.tchvu3.capacitorvoicerecorder;
 
 import android.content.Context;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
+import android.media.AudioManager;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Environment;
@@ -9,18 +12,31 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CustomMediaRecorder {
+public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListener {
 
     private final Context context;
     private final RecordOptions options;
     private MediaRecorder mediaRecorder;
     private File outputFile;
     private CurrentRecordingStatus currentRecordingStatus = CurrentRecordingStatus.NONE;
+    private AudioManager audioManager;
+    private AudioFocusRequest audioFocusRequest;
+    private Runnable onInterruptionBegan;
+    private Runnable onInterruptionEnded;
 
     public CustomMediaRecorder(Context context, RecordOptions options) throws IOException {
         this.context = context;
         this.options = options;
+        this.audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         generateMediaRecorder();
+    }
+
+    public void setOnInterruptionBegan(Runnable callback) {
+        this.onInterruptionBegan = callback;
+    }
+
+    public void setOnInterruptionEnded(Runnable callback) {
+        this.onInterruptionEnded = callback;
     }
 
     private void generateMediaRecorder() throws IOException {
@@ -75,14 +91,31 @@ public class CustomMediaRecorder {
     }
 
     public void startRecording() {
+        requestAudioFocus();
         mediaRecorder.start();
         currentRecordingStatus = CurrentRecordingStatus.RECORDING;
     }
 
     public void stopRecording() {
-        mediaRecorder.stop();
-        mediaRecorder.release();
-        currentRecordingStatus = CurrentRecordingStatus.NONE;
+        if (mediaRecorder == null) {
+            abandonAudioFocus();
+            currentRecordingStatus = CurrentRecordingStatus.NONE;
+            return;
+        }
+
+        try {
+            if (currentRecordingStatus == CurrentRecordingStatus.RECORDING
+                || currentRecordingStatus == CurrentRecordingStatus.PAUSED
+                || currentRecordingStatus == CurrentRecordingStatus.INTERRUPTED) {
+                mediaRecorder.stop();
+            }
+        } catch (IllegalStateException ignore) {
+        } finally {
+            mediaRecorder.release();
+            mediaRecorder = null;
+            abandonAudioFocus();
+            currentRecordingStatus = CurrentRecordingStatus.NONE;
+        }
     }
 
     public File getOutputFile() {
@@ -112,7 +145,8 @@ public class CustomMediaRecorder {
             throw new NotSupportedOsVersion();
         }
 
-        if (currentRecordingStatus == CurrentRecordingStatus.PAUSED) {
+        if (currentRecordingStatus == CurrentRecordingStatus.PAUSED || currentRecordingStatus == CurrentRecordingStatus.INTERRUPTED) {
+            requestAudioFocus();
             mediaRecorder.resume();
             currentRecordingStatus = CurrentRecordingStatus.RECORDING;
             return true;
@@ -144,6 +178,73 @@ public class CustomMediaRecorder {
             return exp.getMessage().startsWith("stop failed");
         } finally {
             if (tempMediaRecorder != null) tempMediaRecorder.deleteOutputFile();
+        }
+    }
+
+    private void requestAudioFocus() {
+        if (audioManager == null) {
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build();
+
+            audioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(audioAttributes)
+                .setOnAudioFocusChangeListener(this)
+                .build();
+
+            audioManager.requestAudioFocus(audioFocusRequest);
+        } else {
+            audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        }
+    }
+
+    private void abandonAudioFocus() {
+        if (audioManager == null) {
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && audioFocusRequest != null) {
+            audioManager.abandonAudioFocusRequest(audioFocusRequest);
+            audioFocusRequest = null;
+        } else {
+            audioManager.abandonAudioFocus(this);
+        }
+    }
+
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+        switch (focusChange) {
+            case AudioManager.AUDIOFOCUS_LOSS:
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                // For voice recording, ducking still degrades captured audio, so treat all loss types as interruptions.
+                if (currentRecordingStatus == CurrentRecordingStatus.RECORDING) {
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            mediaRecorder.pause();
+                            currentRecordingStatus = CurrentRecordingStatus.INTERRUPTED;
+                            if (onInterruptionBegan != null) {
+                                onInterruptionBegan.run();
+                            }
+                        }
+                    } catch (Exception ignore) {
+                    }
+                }
+                break;
+            case AudioManager.AUDIOFOCUS_GAIN:
+                if (currentRecordingStatus == CurrentRecordingStatus.INTERRUPTED) {
+                    if (onInterruptionEnded != null) {
+                        onInterruptionEnded.run();
+                    }
+                }
+                break;
+            default:
+                break;
         }
     }
 }
