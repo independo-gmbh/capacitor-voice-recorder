@@ -1,3 +1,4 @@
+import type {PluginListenerHandle} from "@capacitor/core";
 import type {Directory} from "@capacitor/filesystem";
 
 /**
@@ -66,10 +67,20 @@ export interface GenericResponse {
  */
 export interface CurrentRecordingStatus {
     /**
-     * The current status of the recorder, which can be one of the following values: 'RECORDING', 'PAUSED', 'NONE'.
+     * The current status of the recorder, which can be one of the following values: 'RECORDING', 'PAUSED', 'INTERRUPTED', 'NONE'.
      */
-    status: 'RECORDING' | 'PAUSED' | 'NONE';
+    status: 'RECORDING' | 'PAUSED' | 'INTERRUPTED' | 'NONE';
 }
+
+/**
+ * Event payload for voiceRecordingInterrupted event (empty - no data).
+ */
+export interface VoiceRecordingInterruptedEvent {}
+
+/**
+ * Event payload for voiceRecordingInterruptionEnded event (empty - no data).
+ */
+export interface VoiceRecordingInterruptionEndedEvent {}
 
 /**
  * Interface for the VoiceRecorderPlugin which provides methods to record audio.
@@ -122,6 +133,7 @@ export interface VoiceRecorderPlugin {
      * If the function `startRecording` has not been called beforehand, the promise will reject with `RECORDING_HAS_NOT_STARTED`.
      * If the recording has been stopped immediately after it has been started, the promise will reject with `EMPTY_RECORDING`.
      * In a case of unknown error, the promise will reject with `FAILED_TO_FETCH_RECORDING`.
+     * On iOS, if a recording interrupted by the system cannot be merged, the promise will reject with `FAILED_TO_MERGE_RECORDING`.
      * In case of success, the promise resolves to RecordingData containing the recording in base-64, the duration of the recording in milliseconds, and the MIME type.
      * @returns A promise that resolves to RecordingData.
      * @throws Error with one of the specified error codes if the recording cannot be stopped.
@@ -139,7 +151,7 @@ export interface VoiceRecorderPlugin {
     pauseRecording(): Promise<GenericResponse>;
 
     /**
-     * Resumes a paused audio recording.
+     * Resumes a paused or interrupted audio recording.
      * If the recording has not started yet, the promise will reject with an error code `RECORDING_HAS_NOT_STARTED`.
      * On success, the promise will resolve to { value: true } if the resume was successful or { value: false } if the recording is already running.
      * On certain mobile OS versions, this function is not supported and will reject with `NOT_SUPPORTED_OS_VERSION`.
@@ -154,8 +166,40 @@ export interface VoiceRecorderPlugin {
      * `{ status: "NONE" }` if the plugin is idle and waiting to start a new recording.
      * `{ status: "RECORDING" }` if the plugin is in the middle of recording.
      * `{ status: "PAUSED" }` if the recording is paused.
+     * `{ status: "INTERRUPTED" }` if the recording was paused due to a system interruption.
      * @returns A promise that resolves to a CurrentRecordingStatus.
      * @throws Error if the status cannot be fetched.
      */
     getCurrentStatus(): Promise<CurrentRecordingStatus>;
+
+    /**
+     * Listen for audio recording interruptions (e.g., phone calls, other apps using microphone).
+     * Available on iOS and Android only.
+     *
+     * @param eventName - The name of the event to listen for.
+     * @param listenerFunc - The callback function to invoke when the event occurs.
+     * @returns A promise that resolves to a PluginListenerHandle.
+     */
+    addListener(
+        eventName: 'voiceRecordingInterrupted',
+        listenerFunc: (event: VoiceRecordingInterruptedEvent) => void,
+    ): Promise<PluginListenerHandle>;
+
+    /**
+     * Listen for audio recording interruption end events.
+     * Available on iOS and Android only.
+     *
+     * @param eventName - The name of the event to listen for.
+     * @param listenerFunc - The callback function to invoke when the event occurs.
+     * @returns A promise that resolves to a PluginListenerHandle.
+     */
+    addListener(
+        eventName: 'voiceRecordingInterruptionEnded',
+        listenerFunc: (event: VoiceRecordingInterruptionEndedEvent) => void,
+    ): Promise<PluginListenerHandle>;
+
+    /**
+     * Remove all listeners for this plugin.
+     */
+    removeAllListeners(): Promise<void>;
 }

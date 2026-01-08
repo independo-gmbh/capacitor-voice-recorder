@@ -54,6 +54,14 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
+        customMediaRecorder?.onInterruptionBegan = { [weak self] in
+            self?.notifyListeners("voiceRecordingInterrupted", data: [:])
+        }
+
+        customMediaRecorder?.onInterruptionEnded = { [weak self] in
+            self?.notifyListeners("voiceRecordingInterruptionEnded", data: [:])
+        }
+
         let directory: String? = call.getString("directory")
         let subDirectory: String? = call.getString("subDirectory")
         let recordOptions = RecordOptions(directory: directory, subDirectory: subDirectory)
@@ -71,7 +79,12 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        customMediaRecorder?.stopRecording()
+        let stopSuccess = customMediaRecorder?.stopRecording() ?? false
+        if !stopSuccess {
+            customMediaRecorder = nil
+            call.reject(Messages.FAILED_TO_MERGE_RECORDING)
+            return
+        }
 
         let audioFileUrl = customMediaRecorder?.getOutputFile()
         if(audioFileUrl == nil) {
@@ -80,10 +93,12 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
+        let fileExtension = audioFileUrl!.pathExtension.lowercased()
+        let mimeType = fileExtension == "m4a" ? "audio/mp4" : "audio/aac"
         let sendDataAsBase64 = customMediaRecorder?.options?.directory == nil
         let recordData = RecordData(
             recordDataBase64: sendDataAsBase64 ? readFileAsBase64(audioFileUrl) : nil,
-            mimeType: "audio/aac",
+            mimeType: mimeType,
             msDuration: getMsDurationOfAudioFile(audioFileUrl),
             uri: sendDataAsBase64 ? nil : audioFileUrl!.path
         )

@@ -72,6 +72,9 @@ Below is an index of all available methods. Run `npm run docgen` after updating 
 * [`pauseRecording()`](#pauserecording)
 * [`resumeRecording()`](#resumerecording)
 * [`getCurrentStatus()`](#getcurrentstatus)
+* [`addListener('voiceRecordingInterrupted', ...)`](#addlistenervoicerecordinginterrupted-)
+* [`addListener('voiceRecordingInterruptionEnded', ...)`](#addlistenervoicerecordinginterruptionended-)
+* [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 * [Enums](#enums)
@@ -162,6 +165,7 @@ Will stop the recording that has been previously started.
 If the function `startRecording` has not been called beforehand, the promise will reject with `RECORDING_HAS_NOT_STARTED`.
 If the recording has been stopped immediately after it has been started, the promise will reject with `EMPTY_RECORDING`.
 In a case of unknown error, the promise will reject with `FAILED_TO_FETCH_RECORDING`.
+On iOS, if a recording interrupted by the system cannot be merged, the promise will reject with `FAILED_TO_MERGE_RECORDING`.
 In case of success, the promise resolves to <a href="#recordingdata">RecordingData</a> containing the recording in base-64, the duration of the recording in milliseconds, and the MIME type.
 
 **Returns:** <code>Promise&lt;<a href="#recordingdata">RecordingData</a>&gt;</code>
@@ -191,7 +195,7 @@ On certain mobile OS versions, this function is not supported and will reject wi
 resumeRecording() => Promise<GenericResponse>
 ```
 
-Resumes a paused audio recording.
+Resumes a paused or interrupted audio recording.
 If the recording has not started yet, the promise will reject with an error code `RECORDING_HAS_NOT_STARTED`.
 On success, the promise will resolve to { value: true } if the resume was successful or { value: false } if the recording is already running.
 On certain mobile OS versions, this function is not supported and will reject with `NOT_SUPPORTED_OS_VERSION`.
@@ -212,8 +216,58 @@ Will resolve with one of the following values:
 `{ status: "NONE" }` if the plugin is idle and waiting to start a new recording.
 `{ status: "RECORDING" }` if the plugin is in the middle of recording.
 `{ status: "PAUSED" }` if the recording is paused.
+`{ status: "INTERRUPTED" }` if the recording was paused due to a system interruption.
 
 **Returns:** <code>Promise&lt;<a href="#currentrecordingstatus">CurrentRecordingStatus</a>&gt;</code>
+
+--------------------
+
+
+### addListener('voiceRecordingInterrupted', ...)
+
+```typescript
+addListener(eventName: 'voiceRecordingInterrupted', listenerFunc: (event: VoiceRecordingInterruptedEvent) => void) => Promise<PluginListenerHandle>
+```
+
+Listen for audio recording interruptions (e.g., phone calls, other apps using microphone).
+Available on iOS and Android only.
+
+| Param              | Type                                                                                                          | Description                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **`eventName`**    | <code>'voiceRecordingInterrupted'</code>                                                                      | - The name of the event to listen for.                   |
+| **`listenerFunc`** | <code>(event: <a href="#voicerecordinginterruptedevent">VoiceRecordingInterruptedEvent</a>) =&gt; void</code> | - The callback function to invoke when the event occurs. |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### addListener('voiceRecordingInterruptionEnded', ...)
+
+```typescript
+addListener(eventName: 'voiceRecordingInterruptionEnded', listenerFunc: (event: VoiceRecordingInterruptionEndedEvent) => void) => Promise<PluginListenerHandle>
+```
+
+Listen for audio recording interruption end events.
+Available on iOS and Android only.
+
+| Param              | Type                                                                                                                      | Description                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **`eventName`**    | <code>'voiceRecordingInterruptionEnded'</code>                                                                            | - The name of the event to listen for.                   |
+| **`listenerFunc`** | <code>(event: <a href="#voicerecordinginterruptionendedevent">VoiceRecordingInterruptionEndedEvent</a>) =&gt; void</code> | - The callback function to invoke when the event occurs. |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### removeAllListeners()
+
+```typescript
+removeAllListeners() => Promise<void>
+```
+
+Remove all listeners for this plugin.
 
 --------------------
 
@@ -253,9 +307,26 @@ Interface representing the data of a recording.
 
 Interface representing the current status of the voice recorder.
 
-| Prop         | Type                                           | Description                                                                                                  |
-| ------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **`status`** | <code>'NONE' \| 'RECORDING' \| 'PAUSED'</code> | The current status of the recorder, which can be one of the following values: 'RECORDING', 'PAUSED', 'NONE'. |
+| Prop         | Type                                                            | Description                                                                                                                 |
+| ------------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **`status`** | <code>'NONE' \| 'RECORDING' \| 'PAUSED' \| 'INTERRUPTED'</code> | The current status of the recorder, which can be one of the following values: 'RECORDING', 'PAUSED', 'INTERRUPTED', 'NONE'. |
+
+
+#### PluginListenerHandle
+
+| Prop         | Type                                      |
+| ------------ | ----------------------------------------- |
+| **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
+
+
+#### VoiceRecordingInterruptedEvent
+
+Event payload for voiceRecordingInterrupted event (empty - no data).
+
+
+#### VoiceRecordingInterruptionEndedEvent
+
+Event payload for voiceRecordingInterruptionEnded event (empty - no data).
 
 
 ### Type Aliases
@@ -286,6 +357,12 @@ Represents a Base64 encoded string.
 | **`Temporary`**       | <code>"TEMPORARY"</code>        | A temporary directory for iOS. On Android it's the directory holding the application cache.                                                                                                                                                                                                                                                                                                                                                                                                | 7.1.0 |
 
 </docgen-api>
+
+## Audio interruption handling
+
+On iOS and Android, the plugin listens for system audio interruptions (phone calls, other apps taking audio focus). When an interruption begins, the recording is paused, the status becomes `INTERRUPTED`, and the `voiceRecordingInterrupted` event fires. When the interruption ends, the `voiceRecordingInterruptionEnded` event fires, and the status stays `INTERRUPTED` until you call `resumeRecording()` or `stopRecording()`. Web does not provide interruption handling.
+
+If interruptions occur on iOS, recordings are segmented and merged when you stop. The merged file is M4A with MIME type `audio/mp4`. Recordings without interruptions remain AAC with MIME type `audio/aac`.
 
 
 ## Format and Mime type
