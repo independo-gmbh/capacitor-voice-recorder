@@ -26,10 +26,10 @@ jobs:
       - run: npm ci
       - run: npm run lint
 
-  test:
+  test_web:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    name: "Unit Tests"
+    name: "Web Unit Tests"
     needs:
       - lint
     steps:
@@ -40,7 +40,49 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - run: npm ci
-      - run: npm test
+      - run: npm run test:web
+
+  test_android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    name: "Android Unit Tests"
+    needs:
+      - lint
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - name: set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+          cache: 'gradle'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36 packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+      - run: npm ci
+      - run: npm run test:android
+
+  test_ios:
+    runs-on: macos-15
+    timeout-minutes: 30
+    name: "iOS Unit Tests"
+    needs:
+      - lint
+    steps:
+      - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run test:ios
 
   verify-ios:
     runs-on: macos-15
@@ -48,7 +90,7 @@ jobs:
     name: "iOS Verification"
     needs:
       - lint
-      - test
+      - test_ios
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
       - uses: actions/checkout@v6
@@ -66,7 +108,7 @@ jobs:
     name: "Android Verification"
     needs:
       - lint
-      - test
+      - test_android
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -79,6 +121,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'zulu'
+          cache: 'gradle'
       - uses: android-actions/setup-android@v3
       - name: Install Android SDK 36 packages
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
@@ -91,7 +134,7 @@ jobs:
     name: "Web Verification"
     needs:
       - lint
-      - test
+      - test_web
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
