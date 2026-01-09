@@ -16,6 +16,16 @@ updates:
         patterns:
           - "*semantic-release*"
 
+  - package-ecosystem: "npm"
+    directory: "/example"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+    groups:
+      capacitor:
+        patterns:
+          - "@capacitor/*"
+
   - package-ecosystem: "gradle"
     directory: "/android"
     target-branch: "dev"
