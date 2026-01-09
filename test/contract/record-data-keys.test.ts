@@ -12,9 +12,10 @@ const androidRecordDataPath = path.join(
     'src',
     'main',
     'java',
-    'com',
-    'tchvu3',
+    'app',
+    'independo',
     'capacitorvoicerecorder',
+    'core',
     'RecordData.java',
 );
 const iosRecordDataPath = path.join(
@@ -22,6 +23,7 @@ const iosRecordDataPath = path.join(
     'ios',
     'Sources',
     'VoiceRecorder',
+    'Core',
     'RecordData.swift',
 );
 

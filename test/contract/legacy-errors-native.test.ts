@@ -11,9 +11,10 @@ const androidMessagesPath = path.join(
     'src',
     'main',
     'java',
-    'com',
-    'tchvu3',
+    'app',
+    'independo',
     'capacitorvoicerecorder',
+    'core',
     'Messages.java',
 );
 const iosMessagesPath = path.join(
@@ -21,6 +22,7 @@ const iosMessagesPath = path.join(
     'ios',
     'Sources',
     'VoiceRecorder',
+    'Core',
     'Messages.swift',
 );
 

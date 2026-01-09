@@ -1,6 +1,7 @@
-import { WebPlugin } from '@capacitor/core';
+import { Capacitor, WebPlugin } from '@capacitor/core';
 
-import { VoiceRecorderImpl } from './VoiceRecorderImpl';
+import { VoiceRecorderWebAdapter } from './adapters/VoiceRecorderWebAdapter';
+import { getResponseFormatFromConfig } from './core/response-format';
 import type {
   CurrentRecordingStatus,
   GenericResponse,
@@ -8,39 +9,57 @@ import type {
   RecordingOptions,
   VoiceRecorderPlugin,
 } from './definitions';
+import { VoiceRecorderService } from './service/VoiceRecorderService';
 
+/** Web implementation of the VoiceRecorder Capacitor plugin. */
 export class VoiceRecorderWeb extends WebPlugin implements VoiceRecorderPlugin {
-  private voiceRecorderInstance = new VoiceRecorderImpl();
+  /** Service layer that normalizes behavior and errors. */
+  private readonly service: VoiceRecorderService;
 
+  public constructor() {
+    super();
+    const pluginConfig = (Capacitor as any)?.config?.plugins?.VoiceRecorder;
+    const responseFormat = getResponseFormatFromConfig(pluginConfig);
+    this.service = new VoiceRecorderService(new VoiceRecorderWebAdapter(), responseFormat);
+  }
+
+  /** Checks whether the browser can record audio. */
   public canDeviceVoiceRecord(): Promise<GenericResponse> {
-    return VoiceRecorderImpl.canDeviceVoiceRecord();
+    return this.service.canDeviceVoiceRecord();
   }
 
+  /** Returns whether microphone permission is currently granted. */
   public hasAudioRecordingPermission(): Promise<GenericResponse> {
-    return VoiceRecorderImpl.hasAudioRecordingPermission();
+    return this.service.hasAudioRecordingPermission();
   }
 
+  /** Requests microphone permission from the user. */
   public requestAudioRecordingPermission(): Promise<GenericResponse> {
-    return VoiceRecorderImpl.requestAudioRecordingPermission();
+    return this.service.requestAudioRecordingPermission();
   }
 
+  /** Starts a recording session. */
   public startRecording(options?: RecordingOptions): Promise<GenericResponse> {
-    return this.voiceRecorderInstance.startRecording(options);
+    return this.service.startRecording(options);
   }
 
+  /** Stops the current recording session and returns the payload. */
   public stopRecording(): Promise<RecordingData> {
-    return this.voiceRecorderInstance.stopRecording();
+    return this.service.stopRecording();
   }
 
+  /** Pauses the recording session when supported. */
   public pauseRecording(): Promise<GenericResponse> {
-    return this.voiceRecorderInstance.pauseRecording();
+    return this.service.pauseRecording();
   }
 
+  /** Resumes a paused recording session when supported. */
   public resumeRecording(): Promise<GenericResponse> {
-    return this.voiceRecorderInstance.resumeRecording();
+    return this.service.resumeRecording();
   }
 
+  /** Returns the current recording state. */
   public getCurrentStatus(): Promise<CurrentRecordingStatus> {
-    return this.voiceRecorderInstance.getCurrentStatus();
+    return this.service.getCurrentStatus();
   }
 }
