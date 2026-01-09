@@ -212,16 +212,15 @@ Tooling choices:
 - Risk/notes: avoid Android framework dependencies in unit tests.
 - Compatibility notes: ensure `CANNOT_RECORD_ON_THIS_PHONE` remains the external error string.
 
-### Phase 4: iOS unit tests
-- Description: fix SPM target import and add service tests.
-- Files/areas: take a look at the tests we have in place for android and web and create similar tests for iOS
-- Add a script to package.json to run the tests via CLI `npm run test:ios` that uses `swift test` under the hood
+### Phase 4: ~~iOS unit tests~~ (Done)
+- Description: fix SPM target import and add service/core tests.
+- Files/areas: `ios/Tests/VoiceRecorderTests/`, `ios/Sources/VoiceRecorder/Service/VoiceRecorderService.swift`.
 - Acceptance criteria:
-  - `swift test` passes.
+  - Tests compile for the iOS simulator target.
   - Service tests cover permission flow, stop mapping, error mapping.
-  - Normalized-mode contract tests pass.
+  - Normalized-mode contract behavior is covered by mapper tests.
 - Effort: M
-- Risk/notes: avoid AVFoundation usage in unit tests; use adapters.
+- Risk/notes: avoid AVFoundation usage in unit tests; use adapters; run via Xcode on an iOS simulator (SwiftPM can't execute iOS bundles on macOS).
 - Compatibility notes: keep `FAILED_TO_MERGE_RECORDING` behavior and empty-string output.
 
 ### Phase 5: GitHub Actions CI
@@ -240,7 +239,15 @@ Tooling choices:
 - `test_ios`: macOS runner, prefer `swift test`; fallback to `xcodebuild test` if needed.
 - Caching: use npm cache and Gradle cache; avoid DerivedData cache unless build times justify it.
 
-## 9) Update Documentation
+# 9) Implement an example application
+- in the `example/` folder, there is an outdated example application
+- update it so that it uses the latest version of capacitor (8) and the latest version of this plugin
+- make sure the example app can be used to manually test the plugin on all supported platforms (web, android, ios)
+- update the dependabot configuration to also check for updates in the example app
+- add a simple test screen that uses the plugin to start, pause, resume and stop a recording and then shows the result (duration, mime type, base64 length, uri if available) and allows to play back the recording
+- update the example/README.md to explain how to run the example app and what it does
+
+## 10) Update Documentation
 - make sure the documentation of this repo reflects how this plugin is tested
 - make sure to update the CONTRIBUTING.md file so that it matches the setup of the repo (this might be out of date not only regarding the tests, but is in need of some more comprehensive explanations and restructuring in general)
 - check if we can track code coverage and also report it as a label in the README.md
