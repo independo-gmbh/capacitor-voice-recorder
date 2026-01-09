@@ -1,6 +1,6 @@
 {
-  "name": "App",
-  "short_name": "App",
+  "name": "Voice Recorder Example",
+  "short_name": "Voice Recorder",
   "start_url": "index.html",
   "display": "standalone",
   "icons": [{

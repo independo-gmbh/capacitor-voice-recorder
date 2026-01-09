@@ -239,7 +239,7 @@ Tooling choices:
 - `test_ios`: macOS runner, `npm run test:ios` (uses `xcodebuild test` with an auto-selected simulator).
 - Caching: use npm cache and Gradle cache; avoid DerivedData cache unless build times justify it.
 
-### 9) Implement an example application
+### 9) ~~Implement an example application~~ (Done)
 - in the `example/` folder, there is an outdated example application
 - update it so that it uses the latest version of capacitor (8) and the latest version of this plugin
 - make sure the example app can be used to manually test the plugin on all supported platforms (web, android, ios)
