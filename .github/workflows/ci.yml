@@ -84,6 +84,28 @@ jobs:
       - run: npm ci
       - run: npm run test:ios
 
+  build-example:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    name: "Build Example App"
+    needs:
+      - test_web
+      - test_android
+      - test_ios
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            example/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npm ci --prefix example
+      - run: npm run build --prefix example
+
   verify-ios:
     runs-on: macos-15
     timeout-minutes: 30
@@ -153,6 +175,7 @@ jobs:
       - verify-web
       - verify-ios
       - verify-android
+      - build-example
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
