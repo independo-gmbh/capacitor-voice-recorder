@@ -1,0 +1,87 @@
+{
+    "version": 1,
+    "legacy": {
+        "errors": {
+            "web": [
+                "MISSING_PERMISSION",
+                "ALREADY_RECORDING",
+                "MICROPHONE_BEING_USED",
+                "DEVICE_CANNOT_VOICE_RECORD",
+                "FAILED_TO_RECORD",
+                "EMPTY_RECORDING",
+                "RECORDING_HAS_NOT_STARTED",
+                "FAILED_TO_FETCH_RECORDING",
+                "COULD_NOT_QUERY_PERMISSION_STATUS"
+            ],
+            "android": [
+                "MISSING_PERMISSION",
+                "ALREADY_RECORDING",
+                "MICROPHONE_BEING_USED",
+                "CANNOT_RECORD_ON_THIS_PHONE",
+                "FAILED_TO_RECORD",
+                "EMPTY_RECORDING",
+                "RECORDING_HAS_NOT_STARTED",
+                "FAILED_TO_FETCH_RECORDING",
+                "NOT_SUPPORTED_OS_VERSION"
+            ],
+            "ios": [
+                "MISSING_PERMISSION",
+                "ALREADY_RECORDING",
+                "MICROPHONE_BEING_USED",
+                "CANNOT_RECORD_ON_THIS_PHONE",
+                "FAILED_TO_RECORD",
+                "EMPTY_RECORDING",
+                "RECORDING_HAS_NOT_STARTED",
+                "FAILED_TO_FETCH_RECORDING",
+                "FAILED_TO_MERGE_RECORDING"
+            ]
+        },
+        "recordData": {
+            "fields": [
+                "recordDataBase64",
+                "msDuration",
+                "mimeType",
+                "uri"
+            ],
+            "absenceConventions": {
+                "web": {
+                    "recordDataBase64WhenUri": "empty-string",
+                    "uriWhenBase64": "undefined"
+                },
+                "android": {
+                    "recordDataBase64WhenUri": "null",
+                    "uriWhenBase64": "null-or-undefined"
+                },
+                "ios": {
+                    "recordDataBase64WhenUri": "empty-string",
+                    "uriWhenBase64": "empty-string"
+                }
+            }
+        }
+    },
+    "normalized": {
+        "errors": [
+            "MISSING_PERMISSION",
+            "ALREADY_RECORDING",
+            "MICROPHONE_BEING_USED",
+            "DEVICE_CANNOT_VOICE_RECORD",
+            "FAILED_TO_RECORD",
+            "EMPTY_RECORDING",
+            "RECORDING_HAS_NOT_STARTED",
+            "FAILED_TO_FETCH_RECORDING",
+            "FAILED_TO_MERGE_RECORDING",
+            "NOT_SUPPORTED_OS_VERSION",
+            "COULD_NOT_QUERY_PERMISSION_STATUS"
+        ],
+        "recordData": {
+            "fields": [
+                "recordDataBase64",
+                "msDuration",
+                "mimeType",
+                "uri"
+            ],
+            "absenceConventions": "omit-when-absent",
+            "uriFormat": "file://..."
+        }
+    }
+}
