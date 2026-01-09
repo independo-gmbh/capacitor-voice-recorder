@@ -201,7 +201,7 @@ Tooling choices:
 - Risk/notes: jsdom does not implement MediaRecorder; use fakes.
 - Compatibility notes: assert legacy output behavior (empty string, reject codes).
 
-### Phase 3: Android unit tests
+### Phase 3: ~~Android unit tests~~ (Done)
 - Description: add JVM unit tests for service; optional bridge tests if needed.
 - Files/areas: `android/src/test/java/app/independo/capacitorvoicerecorder/`.
 - Acceptance criteria:
@@ -214,7 +214,8 @@ Tooling choices:
 
 ### Phase 4: iOS unit tests
 - Description: fix SPM target import and add service tests.
-- Files/areas: `ios/Tests/VoiceRecorderTests/VoiceRecorderTests.swift` (import fix), new service tests.
+- Files/areas: take a look at the tests we have in place for android and web and create similar tests for iOS
+- Add a script to package.json to run the tests via CLI `npm run test:ios` that uses `swift test` under the hood
 - Acceptance criteria:
   - `swift test` passes.
   - Service tests cover permission flow, stop mapping, error mapping.
@@ -238,3 +239,8 @@ Tooling choices:
 - `test_android`: Java + Gradle cache, `./gradlew testDebugUnitTest` from `android/`.
 - `test_ios`: macOS runner, prefer `swift test`; fallback to `xcodebuild test` if needed.
 - Caching: use npm cache and Gradle cache; avoid DerivedData cache unless build times justify it.
+
+## 9) Update Documentation
+- make sure the documentation of this repo reflects how this plugin is tested
+- make sure to update the CONTRIBUTING.md file so that it matches the setup of the repo (this might be out of date not only regarding the tests, but is in need of some more comprehensive explanations and restructuring in general)
+- check if we can track code coverage and also report it as a label in the README.md
