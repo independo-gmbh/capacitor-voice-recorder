@@ -1,82 +1,212 @@
-import { VoiceRecorder } from 'capacitor-voice-recorder';
+import { VoiceRecorder } from '@independo/capacitor-voice-recorder';
 
-updateRecordCapabilityLabel();
-updatePermissionStatusLabel();
-updateOngoingRecordingStatus();
+const state = {
+    lastRecording: null,
+};
 
-document.querySelector('#request-for-permission').addEventListener('click', () => {
-  VoiceRecorder.requestAudioRecordingPermission().then(() => updatePermissionStatusLabel());
-});
+const elements = {
+    capabilityStatus: document.querySelector('#record-capability-status'),
+    permissionStatus: document.querySelector('#permission-status'),
+    recordingStatus: document.querySelector('#recording-status'),
+    duration: document.querySelector('#recording-duration'),
+    mimeType: document.querySelector('#recording-mime-type'),
+    base64Length: document.querySelector('#recording-base64-length'),
+    uri: document.querySelector('#recording-uri'),
+    errorOutput: document.querySelector('#error-output'),
+    playback: document.querySelector('#playback-audio'),
+    checkCapability: document.querySelector('#check-capability'),
+    checkPermission: document.querySelector('#check-permission'),
+    requestPermission: document.querySelector('#request-permission'),
+    startRecording: document.querySelector('#start-recording'),
+    pauseRecording: document.querySelector('#pause-recording'),
+    resumeRecording: document.querySelector('#resume-recording'),
+    stopRecording: document.querySelector('#stop-recording'),
+    clearRecording: document.querySelector('#clear-recording'),
+};
 
-document.querySelector('#start-recording').addEventListener('click', () => {
-  VoiceRecorder.startRecording()
-    .then((result) => onPromiseResolved(result, 'start'))
-    .catch((error) => onPromiseThrown(error));
-});
-
-document.querySelector('#end-recording').addEventListener('click', () => {
-  VoiceRecorder.stopRecording()
-    .then((result) => console.log(result.value))
-    .catch((error) => onPromiseThrown(error));
-});
-
-document.querySelector('#pause-recording').addEventListener('click', () => {
-  VoiceRecorder.pauseRecording()
-    .then((result) => onPromiseResolved(result, 'pause'))
-    .catch((error) => onPromiseThrown(error));
-});
-
-document.querySelector('#resume-recording').addEventListener('click', () => {
-  VoiceRecorder.resumeRecording()
-    .then((result) => onPromiseResolved(result, 'resume'))
-    .catch((error) => onPromiseThrown(error));
-});
-
-function onPromiseResolved(result, operation) {
-  if (!result.value) {
-    console.error(`Failed to ${operation} recording`);
-  }
-  updateOngoingRecordingStatus();
-}
-
-function onPromiseThrown(error) {
-  console.error(error);
-  updateOngoingRecordingStatus();
-}
-
-function updatePermissionStatusLabel() {
-  VoiceRecorder.hasAudioRecordingPermission().then((result) => {
-    const permissionStatusLabel = document.querySelector('#permission-status');
-    if (result.value) {
-      permissionStatusLabel.textContent = 'Granted';
-    } else {
-      permissionStatusLabel.textContent = 'Not Granted';
+function setText(element, value) {
+    if (element) {
+        element.textContent = value;
     }
-  });
 }
 
-function updateRecordCapabilityLabel() {
-  VoiceRecorder.canDeviceVoiceRecord().then((result) => {
-    const capabilityStatusLabel = document.querySelector('#record-capability-status');
-    if (result.value) {
-      capabilityStatusLabel.textContent = 'Can';
-    } else {
-      capabilityStatusLabel.textContent = 'Cannot';
+function normalizeError(error) {
+    if (!error) {
+        return 'Unknown error';
     }
-  });
+    if (typeof error === 'string') {
+        return error;
+    }
+    if (typeof error === 'object') {
+        const code = error.code ? String(error.code) : null;
+        const message = error.message ? String(error.message) : null;
+        if (code && message) {
+            return `${code}: ${message}`;
+        }
+        if (code) {
+            return code;
+        }
+        if (message) {
+            return message;
+        }
+    }
+    try {
+        return JSON.stringify(error);
+    } catch (stringifyError) {
+        return String(error);
+    }
 }
 
-function updateOngoingRecordingStatus() {
-  VoiceRecorder.getCurrentStatus().then((result) => {
-    const capabilityStatusLabel = document.querySelector('#ongoing-recording-status');
-    if (result.status === 'NONE') {
-      capabilityStatusLabel.textContent = 'None';
-    } else if (result.status === 'RECORDING') {
-      capabilityStatusLabel.textContent = 'Recording...';
-    } else if (result.status === 'PAUSED') {
-      capabilityStatusLabel.textContent = 'Paused';
-    } else {
-      capabilityStatusLabel.textContent = 'Unknown';
-    }
-  });
+function setError(error) {
+    setText(elements.errorOutput, normalizeError(error));
 }
+
+function clearError() {
+    setText(elements.errorOutput, 'None');
+}
+
+function updateRecordingDetails() {
+    const recording = state.lastRecording;
+    if (!recording) {
+        setText(elements.duration, '—');
+        setText(elements.mimeType, '—');
+        setText(elements.base64Length, '—');
+        setText(elements.uri, '—');
+        if (elements.playback) {
+            elements.playback.removeAttribute('src');
+            elements.playback.load();
+        }
+        return;
+    }
+
+    const base64 = recording.recordDataBase64 ?? '';
+    const uri = recording.uri ?? '';
+    const mimeType = recording.mimeType ?? 'audio/webm';
+
+    setText(elements.duration, recording.msDuration != null ? `${recording.msDuration} ms` : '—');
+    setText(elements.mimeType, mimeType || '—');
+    setText(elements.base64Length, base64 ? `${base64.length} chars` : '0');
+    setText(elements.uri, uri || '—');
+
+    if (elements.playback) {
+        if (uri) {
+            elements.playback.src = uri;
+        } else if (base64) {
+            elements.playback.src = `data:${mimeType};base64,${base64}`;
+        } else {
+            elements.playback.removeAttribute('src');
+        }
+        elements.playback.load();
+    }
+}
+
+async function refreshCapability() {
+    try {
+        const result = await VoiceRecorder.canDeviceVoiceRecord();
+        setText(elements.capabilityStatus, result.value ? 'Can' : 'Cannot');
+    } catch (error) {
+        setText(elements.capabilityStatus, 'Unknown');
+        setError(error);
+    }
+}
+
+async function refreshPermission() {
+    try {
+        const result = await VoiceRecorder.hasAudioRecordingPermission();
+        setText(elements.permissionStatus, result.value ? 'Granted' : 'Not granted');
+    } catch (error) {
+        setText(elements.permissionStatus, 'Unknown');
+        setError(error);
+    }
+}
+
+async function refreshStatus() {
+    try {
+        const result = await VoiceRecorder.getCurrentStatus();
+        setText(elements.recordingStatus, result.status);
+    } catch (error) {
+        setText(elements.recordingStatus, 'Unknown');
+        setError(error);
+    }
+}
+
+async function handleRequestPermission() {
+    clearError();
+    try {
+        await VoiceRecorder.requestAudioRecordingPermission();
+    } catch (error) {
+        setError(error);
+    }
+    await refreshPermission();
+}
+
+async function handleStart() {
+    clearError();
+    try {
+        const result = await VoiceRecorder.startRecording();
+        if (!result.value) {
+            setError('Start returned false.');
+        }
+    } catch (error) {
+        setError(error);
+    }
+    await refreshStatus();
+}
+
+async function handlePause() {
+    clearError();
+    try {
+        const result = await VoiceRecorder.pauseRecording();
+        if (!result.value) {
+            setError('Recording already paused.');
+        }
+    } catch (error) {
+        setError(error);
+    }
+    await refreshStatus();
+}
+
+async function handleResume() {
+    clearError();
+    try {
+        const result = await VoiceRecorder.resumeRecording();
+        if (!result.value) {
+            setError('Recording already running.');
+        }
+    } catch (error) {
+        setError(error);
+    }
+    await refreshStatus();
+}
+
+async function handleStop() {
+    clearError();
+    try {
+        const result = await VoiceRecorder.stopRecording();
+        state.lastRecording = result.value ?? null;
+        updateRecordingDetails();
+    } catch (error) {
+        setError(error);
+    }
+    await refreshStatus();
+}
+
+function handleClear() {
+    state.lastRecording = null;
+    updateRecordingDetails();
+}
+
+elements.checkCapability?.addEventListener('click', () => refreshCapability());
+elements.checkPermission?.addEventListener('click', () => refreshPermission());
+elements.requestPermission?.addEventListener('click', () => handleRequestPermission());
+elements.startRecording?.addEventListener('click', () => handleStart());
+elements.pauseRecording?.addEventListener('click', () => handlePause());
+elements.resumeRecording?.addEventListener('click', () => handleResume());
+elements.stopRecording?.addEventListener('click', () => handleStop());
+elements.clearRecording?.addEventListener('click', () => handleClear());
+
+clearError();
+updateRecordingDetails();
+refreshCapability();
+refreshPermission();
+refreshStatus();

@@ -97,7 +97,9 @@ function run() {
         }
     }
 
-    const gradle = spawnSync('./gradlew', ['clean', 'build', 'test'], {
+    const tasks = process.argv.slice(2);
+    const gradleTasks = tasks.length > 0 ? tasks : ['clean', 'build', 'test'];
+    const gradle = spawnSync('./gradlew', gradleTasks, {
         cwd: require('node:path').join(__dirname, '..', 'android'),
         stdio: 'inherit',
         env: envForGradle,

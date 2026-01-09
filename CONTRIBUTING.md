@@ -19,6 +19,12 @@ This guide provides instructions for contributing to this Capacitor plugin.
     brew install swiftlint
     ```
 
+### Prerequisites for platform testing
+
+- Java 21 (recommended) for Android unit tests and verification.
+- Android SDK for `npm run test:android` or `npm run verify:android`.
+- Xcode + CocoaPods for `npm run test:ios` or `npm run verify:ios`.
+
 ### Scripts
 
 #### `npm run build`
@@ -52,7 +58,38 @@ for easier cooperation.
 
 #### `npm test`
 
-Run the unit test suite. New features should include corresponding tests and existing tests should pass before submitting a pull request.
+Run all unit test suites (web, Android, iOS). This requires Android and iOS toolchains. If you only have one platform
+available, run the platform-specific test command instead.
+
+#### `npm run test:web`
+
+Run Jest unit tests for the web implementation.
+
+#### `npm run test:web:coverage`
+
+Generate local coverage for the web tests (coverage is not uploaded in CI).
+
+#### `npm run test:android`
+
+Run Android JVM unit tests (`testDebugUnitTest`). Requires Java 21 and a local Android SDK.
+
+#### `npm run test:android:coverage`
+
+Run Android unit tests plus JaCoCo coverage XML generation.
+
+#### `npm run test:ios`
+
+Run iOS XCTest via `xcodebuild test`. The script auto-selects a simulator; override with `IOS_SIMULATOR_ID` or
+`IOS_SIMULATOR_NAME` if needed.
+
+#### `npm run test:ios:coverage`
+
+Run iOS XCTest with coverage enabled and generate a Cobertura XML report.
+
+#### Example App
+
+The example app in `example/` is used for manual validation across platforms. See [./example/README.md](./example/README.md) 
+for setup and run instructions.
 
 ## Publishing
 
