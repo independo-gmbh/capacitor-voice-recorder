@@ -2,6 +2,9 @@ import Foundation
 import AVFoundation
 import Capacitor
 
+typealias PermissionRequester = (@escaping (Bool) -> Void) -> Void
+typealias PermissionStatusProvider = () -> AVAudioSession.RecordPermission
+
 /// Capacitor bridge for the VoiceRecorder plugin.
 @objc(VoiceRecorder)
 public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
@@ -25,6 +28,14 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
     private var service: VoiceRecorderService?
     /// Response format derived from plugin configuration.
     private var responseFormat: ResponseFormat = .legacy
+    /// Permission requester used by the bridge.
+    private var permissionRequester: PermissionRequester = { completion in
+        AVAudioSession.sharedInstance().requestRecordPermission(completion)
+    }
+    /// Permission status provider used by the bridge.
+    private var permissionStatusProvider: PermissionStatusProvider = {
+        AVAudioSession.sharedInstance().recordPermission
+    }
 
     /// Initializes dependencies after the plugin loads.
     public override func load() {
@@ -38,6 +49,24 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
         )
     }
 
+    func configureForTesting(
+        service: VoiceRecorderService?,
+        responseFormat: ResponseFormat? = nil,
+        permissionRequester: PermissionRequester? = nil,
+        permissionStatusProvider: PermissionStatusProvider? = nil
+    ) {
+        self.service = service
+        if let responseFormat = responseFormat {
+            self.responseFormat = responseFormat
+        }
+        if let permissionRequester = permissionRequester {
+            self.permissionRequester = permissionRequester
+        }
+        if let permissionStatusProvider = permissionStatusProvider {
+            self.permissionStatusProvider = permissionStatusProvider
+        }
+    }
+
     /// Returns whether the device can record audio.
     @objc func canDeviceVoiceRecord(_ call: CAPPluginCall) {
         let canRecord = service?.canDeviceVoiceRecord() ?? false
@@ -46,7 +75,7 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
 
     /// Requests microphone permission from the user.
     @objc func requestAudioRecordingPermission(_ call: CAPPluginCall) {
-        AVAudioSession.sharedInstance().requestRecordPermission { granted in
+        permissionRequester { granted in
             if granted {
                 call.resolve(ResponseGenerator.successResponse())
             } else {
@@ -159,7 +188,7 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
 
     /// Returns whether AVAudioSession reports granted permission.
     func doesUserGaveAudioRecordingPermission() -> Bool {
-        return AVAudioSession.sharedInstance().recordPermission == AVAudioSession.RecordPermission.granted
+        return permissionStatusProvider() == AVAudioSession.RecordPermission.granted
     }
 
     /// Maps canonical error codes back to legacy messages.
