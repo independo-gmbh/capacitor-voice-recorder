@@ -65,6 +65,7 @@
     "watch": "tsc --watch",
     "test": "npm run test:web && npm run test:android && npm run test:ios",
     "test:web": "jest",
+    "test:web:coverage": "jest --coverage",
     "test:android": "node scripts/verify-android.js testDebugUnitTest",
     "test:ios": "node scripts/test-ios.js",
     "eslint": "eslint . --ext ts",

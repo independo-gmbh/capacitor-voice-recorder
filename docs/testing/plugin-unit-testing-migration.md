@@ -154,13 +154,14 @@ ios/Sources/VoiceRecorder/Core/RecordData.swift
 | --- | --- | --- | --- |
 | Web | Service + core | Jest + ts-jest, mock browser globals | Avoid `registerPlugin()` proxy in tests |
 | Android | Service | JVM unit tests with fakes | Avoid emulator, test adapters with fakes |
-| iOS | Service | XCTest via `swift test` | Prefer SPM; fallback to `xcodebuild test` |
-| CI | All | GitHub Actions 3 jobs | Cache npm + Gradle |
+| iOS | Service | XCTest via `xcodebuild test` | SwiftPM cannot execute iOS bundles on macOS |
+| CI | All | GitHub Actions with per-platform jobs | Cache npm + Gradle |
 
 Tooling choices:
 - Keep Jest + ts-jest (`jest.config.js`).
 - Android: prefer fakes; use Mockito only where mocking is unavoidable.
-- iOS: prefer `swift test` via SPM; use `xcodebuild test` only if needed.
+- iOS: use `xcodebuild test` with an iOS simulator.
+- Coverage: `npm run test:web:coverage` for web-only coverage (not uploaded in CI yet).
 
 ## 7) Migration Plan / Work Items (Backwards Compatible Backlog)
 ### Phase 0: ~~Compatibility baseline + golden contract~~ (Done)
@@ -234,10 +235,16 @@ Tooling choices:
 - Compatibility notes: CI gates changes that alter contract tests.
 
 ### 8) CI Target State (GitHub Actions)
-- `test_web`: Node + npm cache, `npm ci`, `npm run test:web`.
-- `test_android`: Java + Gradle cache, `npm run test:android`.
-- `test_ios`: macOS runner, `npm run test:ios` (uses `xcodebuild test` with an auto-selected simulator).
-- Caching: use npm cache and Gradle cache; avoid DerivedData cache unless build times justify it.
+- Jobs:
+  - `lint`: macOS runner, `npm ci`, `npm run lint`.
+  - `test_web`: Ubuntu runner, Node cache, `npm ci`, `npm run test:web`.
+  - `test_android`: Ubuntu runner, JDK 21 + Gradle cache, Android SDK install, `npm ci`, `npm run test:android`.
+  - `test_ios`: macOS runner (Xcode 16.4), `npm ci`, `npm run test:ios` (uses `xcodebuild test` with an auto-selected simulator).
+  - `verify_web`, `verify_android`, `verify_ios`: platform verification gates after unit tests.
+  - `build`: `npm run build` after verifications.
+  - `publish`: semantic-release on successful build.
+- Caching: npm cache in all jobs; Gradle cache for Android; avoid DerivedData cache unless build times justify it.
+- The example application should also be built as part of CI to catch integration issues early.
 
 ### 9) ~~Implement an example application~~ (Done)
 - in the `example/` folder, there is an outdated example application
@@ -247,7 +254,7 @@ Tooling choices:
 - add a simple test screen that uses the plugin to start, pause, resume and stop a recording and then shows the result (duration, mime type, base64 length, uri if available) and allows to play back the recording
 - update the example/README.md to explain how to run the example app and what it does
 
-### 10) Update Documentation
+### 10) ~~Update Documentation~~ (Done)
 - make sure the documentation of this repo reflects how this plugin is tested
 - make sure to update the CONTRIBUTING.md file so that it matches the setup of the repo (this might be out of date not only regarding the tests, but is in need of some more comprehensive explanations and restructuring in general)
 - check if we can track code coverage and also report it as a label in the README.md

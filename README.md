@@ -24,8 +24,8 @@ npx cap sync
 
 - Capacitor 8+
 - iOS 15+
-- Android minSdk 24+
-- Android builds require Java 21 (recommended). `npm run verify:android` requires a Java version supported by the bundled Gradle wrapper (currently Java 21–24, with Java 21 recommended).
+- Android minSdk 24+; builds require Java 21 (recommended). `npm run verify:android` requires a Java version supported
+  by the bundled Gradle wrapper (currently Java 21–24, with Java 21 recommended).
 
 ## iOS Package Manager Support
 
@@ -41,7 +41,7 @@ This plugin supports both CocoaPods and Swift Package Manager (SPM) on iOS.
 Add the following to your `AndroidManifest.xml`:
 
 ```xml
-<uses-permission android:name="android.permission.RECORD_AUDIO" />
+<uses-permission android:name="android.permission.RECORD_AUDIO"/>
 ```
 
 ### Using with iOS
@@ -49,7 +49,6 @@ Add the following to your `AndroidManifest.xml`:
 Add the following to your `Info.plist`:
 
 ```xml
-
 <key>NSMicrophoneUsageDescription</key>
 <string>This app uses the microphone to record audio.</string>
 ```
@@ -60,7 +59,8 @@ The `@independo/capacitor-voice-recorder` plugin allows you to record audio on A
 
 ## API
 
-Below is an index of all available methods. Run `npm run docgen` after updating any JSDoc comments to refresh this section.
+Below is an index of all available methods. Run `npm run docgen` after updating any JSDoc comments to refresh this
+section.
 
 <docgen-index>
 
@@ -340,7 +340,9 @@ Event payload for voiceRecordingInterrupted event (empty - no data).
 
 Construct a type with a set of properties K of type T
 
-<code>{ [P in K]: T; }</code>
+<code>{
+ [P in K]: T;
+ }</code>
 
 
 #### VoiceRecordingInterruptionEndedEvent
@@ -371,36 +373,44 @@ Event payload for voiceRecordingInterruptionEnded event (empty - no data).
 
 ## Audio interruption handling
 
-On iOS and Android, the plugin listens for system audio interruptions (phone calls, other apps taking audio focus). When an interruption begins, the recording is paused, the status becomes `INTERRUPTED`, and the `voiceRecordingInterrupted` event fires. When the interruption ends, the `voiceRecordingInterruptionEnded` event fires, and the status stays `INTERRUPTED` until you call `resumeRecording()` or `stopRecording()`. Web does not provide interruption handling.
+On iOS and Android, the plugin listens for system audio interruptions (phone calls, other apps taking audio focus). When
+an interruption begins, the recording is paused, the status becomes `INTERRUPTED`, and the `voiceRecordingInterrupted`
+event fires. When the interruption ends, the `voiceRecordingInterruptionEnded` event fires, and the status stays
+`INTERRUPTED` until you call `resumeRecording()` or `stopRecording()`. Web does not provide interruption handling.
 
-If interruptions occur on iOS, recordings are segmented and merged when you stop. The merged file is M4A with MIME type `audio/mp4`. Recordings without interruptions remain AAC with MIME type `audio/aac`.
+If interruptions occur on iOS, recordings are segmented and merged when you stop. The merged file is M4A with MIME type
+`audio/mp4`. Recordings without interruptions remain AAC with MIME type `audio/aac`.
 
+## Format and MIME type
 
-## Format and Mime type
+The plugin returns the recording in one of several possible formats. The actual MIME type depends on the platform and
+browser capabilities.
 
-The plugin will return the recording in one of several possible formats.
-the format is dependent on the os / web browser that the user uses.
-on android and ios the mime type will be `audio/aac`, while on chrome and firefox it
-will be `audio/webm;codecs=opus` and on safari it will be `audio/mp4`.
-note that these 3 browsers has been tested on. the plugin should still work on
-other browsers, as there is a list of mime types that the plugin checks against the
-user's browser.
+- Android: `audio/aac`
+- iOS: `audio/aac` (or `audio/mp4` when interrupted recordings are merged)
+- Web: first supported type from `audio/aac`, `audio/webm;codecs=opus`, `audio/ogg;codecs=opus`, `audio/webm`,
+  `audio/mp4`
 
-Note that this fact might cause unexpected behavior in case you'll try to play recordings
-between several devices or browsers - as they not all support the same set of audio formats.
-it is recommended to convert the recordings to a format that all your target devices supports.
-as this plugin focuses on the recording aspect, it does not provide any conversion between formats.
+Because not all devices and browsers support the same formats, recordings may not be playable everywhere. If you need
+consistent playback across targets, convert recordings to a single format outside this plugin. The plugin focuses on
+recording only and does not perform format conversion.
 
 ## Playback
 
-To play the recorded file you can use plain javascript:
+To play a recording, prefer `uri` when available. On native platforms, pass it through
+`Capacitor.convertFileSrc` before using it in the web view.
 
 ```typescript
-const base64Sound = '...' // from plugin
-const mimeType = '...'  // from plugin
-const audioRef = new Audio(`data:${mimeType};base64,${base64Sound}`)
-audioRef.oncanplaythrough = () => audioRef.play()
-audioRef.load()
+import {Capacitor} from '@capacitor/core';
+
+const {recordDataBase64, mimeType, uri} = result.value;
+const source = uri
+    ? Capacitor.convertFileSrc(uri)
+    : `data:${mimeType};base64,${recordDataBase64}`;
+
+const audioRef = new Audio(source);
+audioRef.oncanplaythrough = () => audioRef.play();
+audioRef.load();
 ```
 
 ## Compatibility
@@ -414,9 +424,10 @@ Versioning follows Capacitor versioning. Major versions of the plugin are compat
 | 7.*            | 7                 |
 | 8.*            | 8                 |
 
-## Collaborators
+## Origins and credit
 
-| Collaborators      |                                                             | GitHub                                    | Donation                                                                                                                          |
-|--------------------|-------------------------------------------------------------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| Avihu Harush       | Original Author                                             | [tchvu3](https://github.com/tchvu3)       | [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/tchvu3) |
-| Konstantin Strümpf | Contributor for [Independo GmbH](https://www.independo.app) | [kstruempf](https://github.com/kstruempf) |                                                                                                                                   |
+This project started as a fork of [
+`tchvu3/capacitor-voice-recorder`](https://github.com/tchvu3/capacitor-voice-recorder).
+Thanks to Avihu Harush for the original implementation and community groundwork. Since then, the plugin has been
+re-architected for improved performance, reliability, and testability (service/adapters split, contract tests, and a
+normalized response path). The codebase now diverges substantially, which is why this repo left the fork network.
