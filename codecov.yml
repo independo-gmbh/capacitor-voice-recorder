@@ -1,0 +1,35 @@
+codecov:
+  require_ci_to_pass: false
+
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+flags:
+  web:
+    paths:
+      - src/
+      - test/
+  android:
+    paths:
+      - android/src/main/java/
+  ios:
+    paths:
+      - ios/Sources/
+
+fixes:
+  - "app/::android/src/main/java/app/"
+
+ignore:
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/DerivedData/**"
+  - "**/*.generated.*"
+  - "android/**/build/**"
+  - "ios/**/build/**"
