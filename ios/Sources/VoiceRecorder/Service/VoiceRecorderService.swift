@@ -6,12 +6,19 @@ final class VoiceRecorderService {
     private let platform: RecorderPlatform
     /// Closure used to check microphone permission.
     private let permissionChecker: () -> Bool
+    /// Factory for creating recorder adapters.
+    private let recorderFactory: () -> RecorderAdapter
     /// Active recorder instance for the current session.
     private var recorder: RecorderAdapter?
 
-    init(platform: RecorderPlatform, permissionChecker: @escaping () -> Bool) {
+    init(
+        platform: RecorderPlatform,
+        permissionChecker: @escaping () -> Bool,
+        recorderFactory: @escaping () -> RecorderAdapter = { CustomMediaRecorder() }
+    ) {
         self.platform = platform
         self.permissionChecker = permissionChecker
+        self.recorderFactory = recorderFactory
     }
 
     /// Returns whether the device can record audio.
@@ -42,7 +49,7 @@ final class VoiceRecorderService {
             throw VoiceRecorderServiceError(code: ErrorCodes.alreadyRecording)
         }
 
-        let nextRecorder = CustomMediaRecorder()
+        let nextRecorder = recorderFactory()
         nextRecorder.onInterruptionBegan = onInterruptionBegan
         nextRecorder.onInterruptionEnded = onInterruptionEnded
         let started = nextRecorder.startRecording(recordOptions: options)

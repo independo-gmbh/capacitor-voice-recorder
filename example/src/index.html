@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <title>Capacitor Voice Recorder Demo</title>
+    <title>Voice Recorder Example</title>
     <meta
       name="viewport"
       content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -17,16 +17,48 @@
     <script defer type="module" src="./js/script.js"></script>
   </head>
   <body>
-    <button id="start-recording">Start recording</button>
-    <button id="end-recording">Stop recording</button>
-    <br />
-    <button id="pause-recording">Pause recording</button>
-    <button id="resume-recording">Resume recording</button>
-    <br />
-    <button id="request-for-permission">Request permission</button>
-    <p>Can device record at all: <span style="font-weight: bold" id="record-capability-status">Unknown</span></p>
-    <p>Permissions status: <span style="font-weight: bold" id="permission-status">Unknown</span></p>
-    <p>Onging recording status: <span style="font-weight: bold" id="ongoing-recording-status">Unknown</span></p>
-    <p>(Open dev console to see errors)</p>
+    <main>
+      <header>
+        <h1>Voice Recorder Test</h1>
+        <p>Use this screen to validate the plugin behavior on web, Android, and iOS.</p>
+      </header>
+
+      <section>
+        <h2>Capability &amp; Permission</h2>
+        <button id="check-capability" type="button">Check device capability</button>
+        <button id="check-permission" type="button">Check permission</button>
+        <button id="request-permission" type="button">Request permission</button>
+        <p>Device capability: <strong id="record-capability-status">Unknown</strong></p>
+        <p>Permission status: <strong id="permission-status">Unknown</strong></p>
+      </section>
+
+      <section>
+        <h2>Recording Controls</h2>
+        <button id="start-recording" type="button">Start recording</button>
+        <button id="pause-recording" type="button">Pause recording</button>
+        <button id="resume-recording" type="button">Resume recording</button>
+        <button id="stop-recording" type="button">Stop recording</button>
+        <button id="clear-recording" type="button">Clear last recording</button>
+      </section>
+
+      <section>
+        <h2>Status</h2>
+        <p>Recorder status: <strong id="recording-status">Unknown</strong></p>
+        <p>Last error: <strong id="error-output">None</strong></p>
+      </section>
+
+      <section>
+        <h2>Last Recording</h2>
+        <p>Duration: <strong id="recording-duration">—</strong></p>
+        <p>MIME type: <strong id="recording-mime-type">—</strong></p>
+        <p>Base64 length: <strong id="recording-base64-length">—</strong></p>
+        <p>URI: <strong id="recording-uri">—</strong></p>
+      </section>
+
+      <section>
+        <h2>Playback</h2>
+        <audio id="playback-audio" controls></audio>
+      </section>
+    </main>
   </body>
 </html>

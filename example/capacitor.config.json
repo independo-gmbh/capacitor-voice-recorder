@@ -1,11 +1,6 @@
 {
-  "appId": "com.example.plugin",
-  "appName": "example",
+  "appId": "app.independo.voicerecorder.example",
+  "appName": "Voice Recorder Example",
   "bundledWebRuntime": false,
-  "webDir": "dist",
-  "plugins": {
-    "SplashScreen": {
-      "launchShowDuration": 0
-    }
-  }
+  "webDir": "dist"
 }
