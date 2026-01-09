@@ -51,17 +51,17 @@ src/adapters/MediaRecorderAdapter.ts (web adapter)
 src/adapters/FilesystemAdapter.ts    (web adapter)
 src/core/recording-contract.ts       (internal types + mapping)
 
-android/.../VoiceRecorder.java             (bridge)
-android/.../VoiceRecorderService.java      (service)
-android/.../adapters/AudioSessionAdapter.java
-android/.../adapters/FileReader.java
-android/.../CustomMediaRecorder.java       (platform impl)
+android/src/main/java/app/independo/capacitorvoicerecorder/VoiceRecorder.java             (bridge)
+android/src/main/java/app/independo/capacitorvoicerecorder/service/VoiceRecorderService.java
+android/src/main/java/app/independo/capacitorvoicerecorder/adapters/RecorderPlatform.java
+android/src/main/java/app/independo/capacitorvoicerecorder/platform/CustomMediaRecorder.java
+android/src/main/java/app/independo/capacitorvoicerecorder/core/RecordData.java
 
-ios/Sources/VoiceRecorder/VoiceRecorder.swift          (bridge)
-ios/Sources/VoiceRecorder/VoiceRecorderService.swift   (service)
-ios/Sources/VoiceRecorder/Adapters/AudioSessionAdapter.swift
-ios/Sources/VoiceRecorder/Adapters/FileReader.swift
-ios/Sources/VoiceRecorder/CustomMediaRecorder.swift    (platform impl)
+ios/Sources/VoiceRecorder/Bridge/VoiceRecorder.swift          (bridge)
+ios/Sources/VoiceRecorder/Service/VoiceRecorderService.swift  (service)
+ios/Sources/VoiceRecorder/Adapters/RecorderPlatform.swift
+ios/Sources/VoiceRecorder/Platform/CustomMediaRecorder.swift  (platform impl)
+ios/Sources/VoiceRecorder/Core/RecordData.swift
 ```
 
 ### Naming conventions
@@ -180,7 +180,7 @@ Tooling choices:
 - Files/areas:
   - Web: `src/service/`, `src/adapters/`, `src/core/`, `src/web.ts`, `src/VoiceRecorderImpl.ts` (reduced to adapter).
   - Android: `android/src/main/java/.../VoiceRecorder.java`, new `VoiceRecorderService.java`, new adapters.
-  - iOS: `ios/Sources/VoiceRecorder/VoiceRecorder.swift`, new `VoiceRecorderService.swift`, new adapters.
+  - iOS: `ios/Sources/VoiceRecorder/Bridge/VoiceRecorder.swift`, new `VoiceRecorderService.swift`, new adapters.
 - Acceptance criteria:
   - Bridge wrappers contain only parameter parsing and `resolve/reject`.
   - Services are testable without Capacitor imports.
@@ -203,7 +203,7 @@ Tooling choices:
 
 ### Phase 3: Android unit tests
 - Description: add JVM unit tests for service; optional bridge tests if needed.
-- Files/areas: `android/src/test/java/com/tchvu3/capacitorvoicerecorder/`.
+- Files/areas: `android/src/test/java/app/independo/capacitorvoicerecorder/`.
 - Acceptance criteria:
   - `./gradlew testDebugUnitTest` passes.
   - Service tests cover permission flow, file handling decisions, error mapping.

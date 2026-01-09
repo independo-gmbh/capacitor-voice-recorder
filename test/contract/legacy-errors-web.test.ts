@@ -11,7 +11,7 @@ import {
     microphoneBeingUsedError,
     missingPermissionError,
     recordingHasNotStartedError,
-} from '../../src/predefined-web-responses';
+} from '../../src/platform/web/predefined-web-responses';
 
 const contractPath = path.join(__dirname, 'voice-recorder-contract.json');
 const contract = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
