@@ -163,7 +163,7 @@ Tooling choices:
 - iOS: prefer `swift test` via SPM; use `xcodebuild test` only if needed.
 
 ## 7) Migration Plan / Work Items (Backwards Compatible Backlog)
-### Phase 0: Compatibility baseline + golden contract
+### Phase 0: ~~Compatibility baseline + golden contract~~ (Done)
 - Description: document current behavior and define vNext normalized contract + vectors.
 - Files/areas: `src/definitions.ts`, `src/predefined-web-responses.ts`, `android/.../Messages.java`, `ios/.../Messages.swift`, `test/`.
 - Acceptance criteria:
