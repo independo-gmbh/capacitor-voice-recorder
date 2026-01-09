@@ -175,7 +175,7 @@ Tooling choices:
 - Risk/notes: requires validating existing behavior for null/empty string output.
 - Compatibility notes: lock current outputs before refactor to prevent accidental change.
 
-### Phase 1: Refactor for testability (service + adapters)
+### Phase 1: ~~Refactor for testability (service + adapters)~~ (Done)
 - Description: create services and adapters; make bridges thin; add responseFormat config and canonical error codes.
 - Files/areas:
   - Web: `src/service/`, `src/adapters/`, `src/core/`, `src/web.ts`, `src/VoiceRecorderImpl.ts` (reduced to adapter).
@@ -191,7 +191,7 @@ Tooling choices:
 - Risk/notes: avoid changing error message strings or payload shapes; move file IO/duration to background threads.
 - Compatibility notes: add tests to detect any behavior drift.
 
-### Phase 2: Web tests expansion
+### Phase 2: ~~Web tests expansion~~ (Done)
 - Description: add tests for service and contract vectors; mock browser APIs; add normalized-mode tests.
 - Files/areas: `test/`, `src/service/`, `src/adapters/`.
 - Acceptance criteria:
