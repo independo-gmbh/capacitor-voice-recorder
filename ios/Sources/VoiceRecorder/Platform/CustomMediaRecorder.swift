@@ -1,15 +1,36 @@
 import Foundation
 import AVFoundation
 
+protocol AudioSessionProtocol: AnyObject {
+    var category: AVAudioSession.Category { get }
+    func setCategory(_ category: AVAudioSession.Category) throws
+    func setActive(_ active: Bool, options: AVAudioSession.SetActiveOptions) throws
+}
+
+protocol AudioRecorderProtocol: AnyObject {
+    @discardableResult
+    func record() -> Bool
+    func stop()
+    func pause()
+}
+
+typealias AudioRecorderFactory = (_ url: URL, _ settings: [String: Any]) throws -> AudioRecorderProtocol
+
+extension AVAudioSession: AudioSessionProtocol {}
+extension AVAudioRecorder: AudioRecorderProtocol {}
+
 /// AVAudioRecorder wrapper that supports interruptions and segment merging.
 class CustomMediaRecorder: RecorderAdapter {
+
+    private let audioSessionProvider: () -> AudioSessionProtocol
+    private let audioRecorderFactory: AudioRecorderFactory
 
     /// Options provided by the service layer.
     public var options: RecordOptions?
     /// Active audio session for recording.
-    private var recordingSession: AVAudioSession!
+    private var recordingSession: AudioSessionProtocol!
     /// Active recorder instance for the current segment.
-    private var audioRecorder: AVAudioRecorder!
+    private var audioRecorder: AudioRecorderProtocol!
     /// Base file path for the merged recording.
     private var baseAudioFilePath: URL!
     /// List of segment files created during interruptions.
@@ -26,12 +47,22 @@ class CustomMediaRecorder: RecorderAdapter {
     var onInterruptionEnded: (() -> Void)?
 
     /// Recorder settings used for all segments.
-    private let settings = [
+    private let settings: [String: Any] = [
         AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
         AVSampleRateKey: 44100,
         AVNumberOfChannelsKey: 1,
         AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
     ]
+
+    init(
+        audioSessionProvider: @escaping () -> AudioSessionProtocol = { AVAudioSession.sharedInstance() },
+        audioRecorderFactory: @escaping AudioRecorderFactory = { url, settings in
+            return try AVAudioRecorder(url: url, settings: settings)
+        }
+    ) {
+        self.audioSessionProvider = audioSessionProvider
+        self.audioRecorderFactory = audioRecorderFactory
+    }
 
     /// Resolves the directory where audio files should be saved.
     private func getDirectoryToSaveAudioFile() -> URL {
@@ -60,13 +91,13 @@ class CustomMediaRecorder: RecorderAdapter {
     public func startRecording(recordOptions: RecordOptions?) -> Bool {
         do {
             options = recordOptions
-            recordingSession = AVAudioSession.sharedInstance()
+            recordingSession = audioSessionProvider()
             originalRecordingSessionCategory = recordingSession.category
             try recordingSession.setCategory(AVAudioSession.Category.playAndRecord)
-            try recordingSession.setActive(true)
+            try recordingSession.setActive(true, options: [])
             baseAudioFilePath = getDirectoryToSaveAudioFile().appendingPathComponent("recording-\(Int(Date().timeIntervalSince1970 * 1000)).aac")
             audioFileSegments = [baseAudioFilePath]
-            audioRecorder = try AVAudioRecorder(url: baseAudioFilePath, settings: settings)
+            audioRecorder = try audioRecorderFactory(baseAudioFilePath, settings)
             setupInterruptionHandling()
             audioRecorder.record()
             status = CurrentRecordingStatus.RECORDING
@@ -88,7 +119,7 @@ class CustomMediaRecorder: RecorderAdapter {
             }
 
             do {
-                try self.recordingSession.setActive(false)
+                try self.recordingSession.setActive(false, options: [])
                 try self.recordingSession.setCategory(self.originalRecordingSessionCategory)
             } catch {
             }
@@ -151,13 +182,13 @@ class CustomMediaRecorder: RecorderAdapter {
         if(status == CurrentRecordingStatus.PAUSED || status == CurrentRecordingStatus.INTERRUPTED) {
             let wasInterrupted = status == CurrentRecordingStatus.INTERRUPTED
             do {
-                try recordingSession.setActive(true)
+                try recordingSession.setActive(true, options: [])
                 if status == CurrentRecordingStatus.INTERRUPTED {
                     let directory = getDirectoryToSaveAudioFile()
                     let timestamp = Int(Date().timeIntervalSince1970 * 1000)
                     let segmentNumber = audioFileSegments.count
                     let segmentPath = directory.appendingPathComponent("recording-\(timestamp)-segment-\(segmentNumber).aac")
-                    audioRecorder = try AVAudioRecorder(url: segmentPath, settings: settings)
+                    audioRecorder = try audioRecorderFactory(segmentPath, settings)
                     audioFileSegments.append(segmentPath)
                 }
                 audioRecorder.record()
@@ -165,7 +196,7 @@ class CustomMediaRecorder: RecorderAdapter {
                 return true
             } catch {
                 if wasInterrupted {
-                    try? recordingSession.setActive(false)
+                    try? recordingSession.setActive(false, options: [])
                 }
                 return false
             }
@@ -183,7 +214,7 @@ class CustomMediaRecorder: RecorderAdapter {
     private func setupInterruptionHandling() {
         interruptionObserver = NotificationCenter.default.addObserver(
             forName: AVAudioSession.interruptionNotification,
-            object: AVAudioSession.sharedInstance(),
+            object: recordingSession,
             queue: .main
         ) { [weak self] notification in
             self?.handleInterruption(notification: notification)
