@@ -73,10 +73,18 @@ Generate local coverage for the web tests (coverage is not uploaded in CI).
 
 Run Android JVM unit tests (`testDebugUnitTest`). Requires Java 21 and a local Android SDK.
 
+#### `npm run test:android:coverage`
+
+Run Android unit tests plus JaCoCo coverage XML generation.
+
 #### `npm run test:ios`
 
 Run iOS XCTest via `xcodebuild test`. The script auto-selects a simulator; override with `IOS_SIMULATOR_ID` or
 `IOS_SIMULATOR_NAME` if needed.
+
+#### `npm run test:ios:coverage`
+
+Run iOS XCTest with coverage enabled and generate a Cobertura XML report.
 
 #### Example App
 

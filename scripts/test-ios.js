@@ -1,6 +1,27 @@
 const {spawnSync} = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const SCHEME = 'IndependoCapacitorVoiceRecorder';
+
+function parseArgs(argv = process.argv) {
+    const options = {
+        coverage: false,
+        resultBundlePath: null,
+    };
+
+    for (let i = 2; i < argv.length; i += 1) {
+        const arg = argv[i];
+        if (arg === '--coverage') {
+            options.coverage = true;
+        } else if (arg === '--result-bundle-path') {
+            options.resultBundlePath = argv[i + 1];
+            i += 1;
+        }
+    }
+
+    return options;
+}
 
 function parseRuntimeVersion(runtimeId) {
     const match = runtimeId.match(/iOS-(?<version>[0-9-]+)/);
@@ -109,6 +130,7 @@ function selectSimulator(devicesByRuntime, env = process.env) {
 }
 
 function run() {
+    const options = parseArgs();
     const devicesByRuntime = getDevicesByRuntime();
     const device = selectSimulator(devicesByRuntime);
 
@@ -124,6 +146,14 @@ function run() {
         '-sdk',
         'iphonesimulator',
     ];
+
+    if (options.coverage) {
+        const resultBundlePath = options.resultBundlePath ?? 'coverage/ios.xcresult';
+        fs.mkdirSync(path.dirname(resultBundlePath), {recursive: true});
+        args.push('-enableCodeCoverage', 'YES', '-resultBundlePath', resultBundlePath);
+        // eslint-disable-next-line no-console
+        console.log(`Code coverage enabled. Result bundle: ${resultBundlePath}`);
+    }
 
     const result = spawnSync('xcodebuild', args, {stdio: 'inherit'});
     process.exit(result.status ?? 1);

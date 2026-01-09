@@ -1,0 +1,116 @@
+name: "Coverage"
+permissions:
+  contents: read
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - master
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  web-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    name: "Web Coverage"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run test:web:coverage
+      - name: Upload web coverage (token)
+        if: ${{ secrets.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/lcov.info
+          flags: web
+          fail_ci_if_error: false
+          verbose: false
+      - name: Upload web coverage (tokenless)
+        if: ${{ secrets.CODECOV_TOKEN == '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage/lcov.info
+          flags: web
+          fail_ci_if_error: false
+          verbose: false
+
+  android-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    name: "Android Coverage"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - name: set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+          cache: 'gradle'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36 packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+      - run: npm ci
+      - run: npm run test:android:coverage
+      - name: Upload Android coverage (token)
+        if: ${{ secrets.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: android/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          flags: android
+          fail_ci_if_error: false
+          verbose: false
+      - name: Upload Android coverage (tokenless)
+        if: ${{ secrets.CODECOV_TOKEN == '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: android/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          flags: android
+          fail_ci_if_error: false
+          verbose: false
+
+  ios-tests:
+    runs-on: macos-15
+    timeout-minutes: 45
+    name: "iOS Coverage"
+    steps:
+      - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run test:ios:coverage
+      - name: Upload iOS coverage (token)
+        if: ${{ secrets.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/ios-cobertura.xml
+          flags: ios
+          fail_ci_if_error: false
+          verbose: false
+      - name: Upload iOS coverage (tokenless)
+        if: ${{ secrets.CODECOV_TOKEN == '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage/ios-cobertura.xml
+          flags: ios
+          fail_ci_if_error: false
+          verbose: false
