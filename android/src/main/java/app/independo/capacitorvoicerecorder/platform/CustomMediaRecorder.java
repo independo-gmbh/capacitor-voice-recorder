@@ -18,10 +18,109 @@ import java.util.regex.Pattern;
 /** MediaRecorder wrapper that manages audio focus and interruptions. */
 public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListener, RecorderAdapter {
 
+    interface MediaRecorderFactory {
+        MediaRecorder create();
+    }
+
+    interface AudioManagerProvider {
+        AudioManager getAudioManager(Context context);
+    }
+
+    interface DirectoryProvider {
+        File getDocumentsDirectory();
+
+        File getFilesDir(Context context);
+
+        File getCacheDir(Context context);
+
+        File getExternalFilesDir(Context context);
+
+        File getExternalStorageDirectory();
+    }
+
+    interface SdkIntProvider {
+        int getSdkInt();
+    }
+
+    interface AudioFocusRequestFactory {
+        AudioFocusRequest create(AudioManager.OnAudioFocusChangeListener listener);
+    }
+
+    private static final class DefaultMediaRecorderFactory implements MediaRecorderFactory {
+        @Override
+        public MediaRecorder create() {
+            return new MediaRecorder();
+        }
+    }
+
+    private static final class DefaultAudioManagerProvider implements AudioManagerProvider {
+        @Override
+        public AudioManager getAudioManager(Context context) {
+            return (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        }
+    }
+
+    private static final class DefaultDirectoryProvider implements DirectoryProvider {
+        @Override
+        public File getDocumentsDirectory() {
+            return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+        }
+
+        @Override
+        public File getFilesDir(Context context) {
+            return context.getFilesDir();
+        }
+
+        @Override
+        public File getCacheDir(Context context) {
+            return context.getCacheDir();
+        }
+
+        @Override
+        public File getExternalFilesDir(Context context) {
+            return context.getExternalFilesDir(null);
+        }
+
+        @Override
+        public File getExternalStorageDirectory() {
+            return Environment.getExternalStorageDirectory();
+        }
+    }
+
+    private static final class DefaultSdkIntProvider implements SdkIntProvider {
+        @Override
+        public int getSdkInt() {
+            return Build.VERSION.SDK_INT;
+        }
+    }
+
+    private static final class DefaultAudioFocusRequestFactory implements AudioFocusRequestFactory {
+        @Override
+        public AudioFocusRequest create(AudioManager.OnAudioFocusChangeListener listener) {
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build();
+
+            return new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(audioAttributes)
+                .setOnAudioFocusChangeListener(listener)
+                .build();
+        }
+    }
+
     /** Android context for file paths and system services. */
     private final Context context;
     /** Recording options passed from the service layer. */
     private final RecordOptions options;
+    /** Factory for MediaRecorder instances. */
+    private final MediaRecorderFactory mediaRecorderFactory;
+    /** Directory provider for file output. */
+    private final DirectoryProvider directoryProvider;
+    /** SDK version provider for API gating. */
+    private final SdkIntProvider sdkIntProvider;
+    /** Audio focus request factory for O and above. */
+    private final AudioFocusRequestFactory audioFocusRequestFactory;
     /** Active MediaRecorder instance for the session. */
     private MediaRecorder mediaRecorder;
     /** Output file for the current recording session. */
@@ -38,9 +137,33 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     private Runnable onInterruptionEnded;
 
     public CustomMediaRecorder(Context context, RecordOptions options) throws IOException {
+        this(
+            context,
+            options,
+            new DefaultMediaRecorderFactory(),
+            new DefaultAudioManagerProvider(),
+            new DefaultDirectoryProvider(),
+            new DefaultSdkIntProvider(),
+            new DefaultAudioFocusRequestFactory()
+        );
+    }
+
+    CustomMediaRecorder(
+        Context context,
+        RecordOptions options,
+        MediaRecorderFactory mediaRecorderFactory,
+        AudioManagerProvider audioManagerProvider,
+        DirectoryProvider directoryProvider,
+        SdkIntProvider sdkIntProvider,
+        AudioFocusRequestFactory audioFocusRequestFactory
+    ) throws IOException {
         this.context = context;
         this.options = options;
-        this.audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        this.mediaRecorderFactory = mediaRecorderFactory;
+        this.directoryProvider = directoryProvider;
+        this.sdkIntProvider = sdkIntProvider;
+        this.audioFocusRequestFactory = audioFocusRequestFactory;
+        this.audioManager = audioManagerProvider.getAudioManager(context);
         generateMediaRecorder();
     }
 
@@ -56,7 +179,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
 
     /** Configures the MediaRecorder with audio settings. */
     private void generateMediaRecorder() throws IOException {
-        mediaRecorder = new MediaRecorder();
+        mediaRecorder = mediaRecorderFactory.create();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
@@ -68,7 +191,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
 
     /** Picks a directory and allocates the output file for this session. */
     private void setRecorderOutputFile() throws IOException {
-        File outputDir = context.getCacheDir();
+        File outputDir = directoryProvider.getCacheDir(context);
 
         String directory = options.directory();
         String subDirectory = options.subDirectory();
@@ -99,11 +222,11 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     /** Maps directory strings to Android file locations. */
     private File getDirectory(String directory) {
         return switch (directory) {
-            case "DOCUMENTS" -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-            case "DATA", "LIBRARY" -> context.getFilesDir();
-            case "CACHE" -> context.getCacheDir();
-            case "EXTERNAL" -> context.getExternalFilesDir(null);
-            case "EXTERNAL_STORAGE" -> Environment.getExternalStorageDirectory();
+            case "DOCUMENTS" -> directoryProvider.getDocumentsDirectory();
+            case "DATA", "LIBRARY" -> directoryProvider.getFilesDir(context);
+            case "CACHE" -> directoryProvider.getCacheDir(context);
+            case "EXTERNAL" -> directoryProvider.getExternalFilesDir(context);
+            case "EXTERNAL_STORAGE" -> directoryProvider.getExternalStorageDirectory();
             default -> null;
         };
     }
@@ -150,7 +273,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
 
     /** Pauses recording when supported by the OS version. */
     public boolean pauseRecording() throws NotSupportedOsVersion {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+        if (sdkIntProvider.getSdkInt() < Build.VERSION_CODES.N) {
             throw new NotSupportedOsVersion();
         }
 
@@ -165,7 +288,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
 
     /** Resumes a paused or interrupted recording session. */
     public boolean resumeRecording() throws NotSupportedOsVersion {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+        if (sdkIntProvider.getSdkInt() < Build.VERSION_CODES.N) {
             throw new NotSupportedOsVersion();
         }
 
@@ -215,17 +338,8 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
             return;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .build();
-
-            audioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                .setAudioAttributes(audioAttributes)
-                .setOnAudioFocusChangeListener(this)
-                .build();
-
+        if (sdkIntProvider.getSdkInt() >= Build.VERSION_CODES.O) {
+            audioFocusRequest = audioFocusRequestFactory.create(this);
             audioManager.requestAudioFocus(audioFocusRequest);
         } else {
             audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
@@ -238,7 +352,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
             return;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && audioFocusRequest != null) {
+        if (sdkIntProvider.getSdkInt() >= Build.VERSION_CODES.O && audioFocusRequest != null) {
             audioManager.abandonAudioFocusRequest(audioFocusRequest);
             audioFocusRequest = null;
         } else {
@@ -256,7 +370,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
                 // For voice recording, ducking still degrades captured audio, so treat all loss types as interruptions.
                 if (currentRecordingStatus == CurrentRecordingStatus.RECORDING) {
                     try {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        if (sdkIntProvider.getSdkInt() >= Build.VERSION_CODES.N) {
                             mediaRecorder.pause();
                             currentRecordingStatus = CurrentRecordingStatus.INTERRUPTED;
                             if (onInterruptionBegan != null) {

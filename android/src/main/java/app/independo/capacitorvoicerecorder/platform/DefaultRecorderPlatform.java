@@ -17,11 +17,77 @@ import java.io.IOException;
 /** Default Android platform adapter for recording and file IO. */
 public class DefaultRecorderPlatform implements RecorderPlatform {
 
+    interface RecorderFactory {
+        RecorderAdapter create(Context context, RecordOptions options) throws Exception;
+    }
+
+    interface MediaPlayerFactory {
+        MediaPlayer create();
+    }
+
+    interface UriConverter {
+        String toUri(File recordedFile);
+    }
+
+    interface Base64Encoder {
+        String encode(byte[] data);
+    }
+
+    private static final class DefaultRecorderFactory implements RecorderFactory {
+        @Override
+        public RecorderAdapter create(Context context, RecordOptions options) throws Exception {
+            return new CustomMediaRecorder(context, options);
+        }
+    }
+
+    private static final class DefaultMediaPlayerFactory implements MediaPlayerFactory {
+        @Override
+        public MediaPlayer create() {
+            return new MediaPlayer();
+        }
+    }
+
+    private static final class DefaultUriConverter implements UriConverter {
+        @Override
+        public String toUri(File recordedFile) {
+            return Uri.fromFile(recordedFile).toString();
+        }
+    }
+
+    private static final class DefaultBase64Encoder implements Base64Encoder {
+        @Override
+        public String encode(byte[] data) {
+            return Base64.encodeToString(data, Base64.DEFAULT);
+        }
+    }
+
     /** Android context used to access system services. */
     private final Context context;
+    /** Recorder factory for platform creation. */
+    private final RecorderFactory recorderFactory;
+    /** Media player factory for duration lookup. */
+    private final MediaPlayerFactory mediaPlayerFactory;
+    /** Uri converter for response payloads. */
+    private final UriConverter uriConverter;
+    /** Base64 encoder for file payloads. */
+    private final Base64Encoder base64Encoder;
 
     public DefaultRecorderPlatform(Context context) {
+        this(context, new DefaultRecorderFactory(), new DefaultMediaPlayerFactory(), new DefaultUriConverter(), new DefaultBase64Encoder());
+    }
+
+    DefaultRecorderPlatform(
+        Context context,
+        RecorderFactory recorderFactory,
+        MediaPlayerFactory mediaPlayerFactory,
+        UriConverter uriConverter,
+        Base64Encoder base64Encoder
+    ) {
         this.context = context;
+        this.recorderFactory = recorderFactory;
+        this.mediaPlayerFactory = mediaPlayerFactory;
+        this.uriConverter = uriConverter;
+        this.base64Encoder = base64Encoder;
     }
 
     /** Returns whether the device can create a MediaRecorder instance. */
@@ -41,7 +107,7 @@ public class DefaultRecorderPlatform implements RecorderPlatform {
     /** Creates the recorder adapter for the provided options. */
     @Override
     public RecorderAdapter createRecorder(RecordOptions options) throws Exception {
-        return new CustomMediaRecorder(context, options);
+        return recorderFactory.create(context, options);
     }
 
     /** Reads the recorded file as base64, returning null on failure. */
@@ -54,7 +120,7 @@ public class DefaultRecorderPlatform implements RecorderPlatform {
             while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
             }
-            return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
+            return base64Encoder.encode(outputStream.toByteArray());
         } catch (IOException exp) {
             return null;
         }
@@ -65,7 +131,7 @@ public class DefaultRecorderPlatform implements RecorderPlatform {
     public int getDurationMs(File recordedFile) {
         MediaPlayer mediaPlayer = null;
         try {
-            mediaPlayer = new MediaPlayer();
+            mediaPlayer = mediaPlayerFactory.create();
             mediaPlayer.setDataSource(recordedFile.getAbsolutePath());
             mediaPlayer.prepare();
             return mediaPlayer.getDuration();
@@ -81,6 +147,6 @@ public class DefaultRecorderPlatform implements RecorderPlatform {
     /** Returns a file:// URI for the given recording. */
     @Override
     public String toUri(File recordedFile) {
-        return Uri.fromFile(recordedFile).toString();
+        return uriConverter.toUri(recordedFile);
     }
 }
