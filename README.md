@@ -11,7 +11,7 @@
 <br>
   <a href="https://www.npmjs.com/package/@independo/capacitor-voice-recorder"><img src="https://img.shields.io/npm/dw/@independo/capacitor-voice-recorder" alt="" role="presentation" /></a>
   <a href="https://www.npmjs.com/package/@independo/capacitor-voice-recorder"><img src="https://img.shields.io/npm/v/@independo/capacitor-voice-recorder" alt="" role="presentation" /></a>
-  <a href="https://codecov.io/gh/independo-gmbh/capacitor-voice-recorder/branch/main"><img src="https://codecov.io/gh/independo-gmbh/capacitor-voice-recorder/branch/main/graph/badge.svg" alt="Coverage Badge: main" /></a>
+  <a href="https://codecov.io/gh/independo-gmbh/capacitor-voice-recorder/branch/master"><img src="https://codecov.io/gh/independo-gmbh/capacitor-voice-recorder/branch/master/graph/badge.svg" alt="Coverage Badge: master" /></a>
 </p>
 
 ## Installation
