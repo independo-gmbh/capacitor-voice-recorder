@@ -32,7 +32,7 @@ public class VoiceRecorderServicePauseResumeTest {
         platform.recorder.pauseThrows = true;
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {});
+        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
             service::pauseRecording
@@ -46,7 +46,7 @@ public class VoiceRecorderServicePauseResumeTest {
         VoiceRecorderServiceFixtures.FakePlatform platform = VoiceRecorderServiceFixtures.createPlatform();
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {});
+        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
 
         assertTrue(service.pauseRecording());
         assertEquals(CurrentRecordingStatus.PAUSED, service.getCurrentStatus());
@@ -73,7 +73,7 @@ public class VoiceRecorderServicePauseResumeTest {
         platform.recorder.resumeThrows = true;
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {});
+        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
             service::resumeRecording
@@ -87,7 +87,7 @@ public class VoiceRecorderServicePauseResumeTest {
         VoiceRecorderServiceFixtures.FakePlatform platform = VoiceRecorderServiceFixtures.createPlatform();
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {});
+        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
         service.pauseRecording();
 
         assertTrue(service.resumeRecording());

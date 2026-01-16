@@ -4,6 +4,8 @@ import android.content.Context;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaRecorder;
+import android.os.Handler;
+import android.os.Looper;
 import app.independo.capacitorvoicerecorder.core.CurrentRecordingStatus;
 import app.independo.capacitorvoicerecorder.core.RecordOptions;
 import java.io.File;
@@ -62,6 +64,12 @@ public class CustomMediaRecorderTest {
         };
         CustomMediaRecorder.SdkIntProvider sdkIntProvider = () -> sdkInt;
         CustomMediaRecorder.AudioFocusRequestFactory audioFocusRequestFactory = ignored -> focusRequest;
+        CustomMediaRecorder.HandlerProvider fakeHandlerProvider = new CustomMediaRecorder.HandlerProvider() {
+            @Override public void setupHandler() {}
+            @Override public void post(Runnable r) {}
+            @Override public void postDelayed(Runnable r, long d) {}
+            @Override public void removeCallbacks(Runnable r) {}
+        };
         return new CustomMediaRecorder(
             context,
             options,
@@ -69,7 +77,8 @@ public class CustomMediaRecorderTest {
             audioManagerProvider,
             directoryProvider,
             sdkIntProvider,
-            audioFocusRequestFactory
+            audioFocusRequestFactory,
+            fakeHandlerProvider
         );
     }
 
