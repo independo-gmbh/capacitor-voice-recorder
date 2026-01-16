@@ -8,6 +8,8 @@ protocol RecorderAdapter: AnyObject {
     var onInterruptionBegan: (() -> Void)? { get set }
     /// Callback invoked when interruptions end.
     var onInterruptionEnded: (() -> Void)? { get set }
+    /// Callback for receiving volume updates.
+    var onVolumeChanged: ((Float) -> Void)? { get set }
 
     /// Starts recording audio.
     func startRecording(recordOptions: RecordOptions?) -> Bool

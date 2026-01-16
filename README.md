@@ -75,6 +75,7 @@ section.
 * [`getCurrentStatus()`](#getcurrentstatus)
 * [`addListener('voiceRecordingInterrupted', ...)`](#addlistenervoicerecordinginterrupted-)
 * [`addListener('voiceRecordingInterruptionEnded', ...)`](#addlistenervoicerecordinginterruptionended-)
+* [`addListener('volumeChanged', ...)`](#addlistenervolumechanged-)
 * [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
@@ -262,6 +263,25 @@ Available on iOS and Android only.
 --------------------
 
 
+### addListener('volumeChanged', ...)
+
+```typescript
+addListener(eventName: 'volumeChanged', listenerFunc: (event: VoiceRecordingVolumeChangedEvent) => void) => Promise<PluginListenerHandle>
+```
+
+Receive updates of the volume.
+Available on iOS and Android only.
+
+| Param              | Type                                                                                                              | Description                                            |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **`eventName`**    | <code>'volumeChanged'</code>                                                                                      | The name of the event to listen for.                   |
+| **`listenerFunc`** | <code>(event: <a href="#voicerecordingvolumechangedevent">VoiceRecordingVolumeChangedEvent</a>) =&gt; void</code> | The callback function to invoke when the event occurs. |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
 ### removeAllListeners()
 
 ```typescript
@@ -349,6 +369,13 @@ Construct a type with a set of properties K of type T
 Event payload for voiceRecordingInterruptionEnded event (empty - no data).
 
 <code><a href="#record">Record</a>&lt;string, never&gt;</code>
+
+
+#### VoiceRecordingVolumeChangedEvent
+
+Event payload for receiving the recording volume.
+
+<code>{ volume: number, }</code>
 
 
 ### Enums

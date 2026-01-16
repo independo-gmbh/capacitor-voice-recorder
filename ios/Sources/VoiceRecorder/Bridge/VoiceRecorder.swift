@@ -108,6 +108,10 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
                 },
                 onInterruptionEnded: { [weak self] in
                     self?.notifyListeners("voiceRecordingInterruptionEnded", data: [:])
+                },
+                onVolumeChanged: { [weak self] volume in
+                    // volume is a Float between 0.0 and 1.0
+                    self?.notifyListeners("volumeChanged", data: ["volume": volume])
                 }
             )
             call.resolve(ResponseGenerator.successResponse())
