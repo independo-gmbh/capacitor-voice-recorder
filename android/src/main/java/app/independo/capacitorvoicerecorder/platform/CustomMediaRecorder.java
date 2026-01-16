@@ -310,7 +310,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         float kneePoint = 1.0f - threshold;
 
         if (rawLinear <= threshold) {
-            return (float) Math.sqrt(0.5f * (rawLinear / threshold)) * kneePoint;
+            return (float) Math.sqrt(rawLinear / threshold) * kneePoint;
         } else {
             float excess = (rawLinear - threshold) / (1.0f - threshold);
             return kneePoint + (excess * (1.0f - kneePoint));
