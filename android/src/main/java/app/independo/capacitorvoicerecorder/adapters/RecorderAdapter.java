@@ -4,6 +4,7 @@ import app.independo.capacitorvoicerecorder.core.CurrentRecordingStatus;
 import app.independo.capacitorvoicerecorder.core.RecordOptions;
 import app.independo.capacitorvoicerecorder.platform.NotSupportedOsVersion;
 import java.io.File;
+import java.util.function.Consumer;
 
 /** Recorder abstraction used by the service layer. */
 public interface RecorderAdapter {
@@ -12,6 +13,9 @@ public interface RecorderAdapter {
 
     /** Sets a callback invoked when interruptions end. */
     void setOnInterruptionEnded(Runnable callback);
+
+    /** Sets the callback for real-time volume updates. */
+    void setOnVolumeChanged(Consumer<Float> callback);
 
     /** Starts recording audio. */
     void startRecording();

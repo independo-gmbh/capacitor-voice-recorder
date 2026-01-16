@@ -13,6 +13,7 @@ import app.independo.capacitorvoicerecorder.core.ResponseGenerator;
 import app.independo.capacitorvoicerecorder.platform.DefaultRecorderPlatform;
 import app.independo.capacitorvoicerecorder.service.VoiceRecorderService;
 import app.independo.capacitorvoicerecorder.service.VoiceRecorderServiceException;
+import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -82,7 +83,12 @@ public class VoiceRecorder extends Plugin {
             service.startRecording(
                 options,
                 () -> notifyListeners("voiceRecordingInterrupted", null),
-                () -> notifyListeners("voiceRecordingInterruptionEnded", null)
+                () -> notifyListeners("voiceRecordingInterruptionEnded", null),
+                (Float volume) -> {
+                    JSObject data = new JSObject();
+                    data.put("volume", volume);
+                    notifyListeners("volumeChanged", data);
+                }
             );
             call.resolve(ResponseGenerator.successResponse());
         } catch (VoiceRecorderServiceException exp) {

@@ -9,6 +9,7 @@ import app.independo.capacitorvoicerecorder.core.RecordData;
 import app.independo.capacitorvoicerecorder.core.RecordOptions;
 import app.independo.capacitorvoicerecorder.platform.NotSupportedOsVersion;
 import java.io.File;
+import java.util.function.Consumer;
 
 /** Service layer that orchestrates recording operations. */
 public class VoiceRecorderService {
@@ -39,7 +40,8 @@ public class VoiceRecorderService {
     public void startRecording(
         RecordOptions options,
         Runnable onInterruptionBegan,
-        Runnable onInterruptionEnded
+        Runnable onInterruptionEnded,
+        Consumer<Float> onVolumeChanged
     ) throws VoiceRecorderServiceException {
         if (!platform.canDeviceVoiceRecord()) {
             throw new VoiceRecorderServiceException(ErrorCodes.DEVICE_CANNOT_VOICE_RECORD);
@@ -61,6 +63,7 @@ public class VoiceRecorderService {
             recorder = platform.createRecorder(options);
             recorder.setOnInterruptionBegan(onInterruptionBegan);
             recorder.setOnInterruptionEnded(onInterruptionEnded);
+            recorder.setOnVolumeChanged(onVolumeChanged);
             recorder.startRecording();
         } catch (Exception exp) {
             recorder = null;
