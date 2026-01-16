@@ -83,6 +83,13 @@ export type VoiceRecordingInterruptedEvent = Record<string, never>;
 export type VoiceRecordingInterruptionEndedEvent = Record<string, never>;
 
 /**
+ * Event payload for receiving the recording volume.
+ */
+export type VoiceRecordingVolumeChangedEvent = {
+  volume: number,
+};
+
+/**
  * Interface for the VoiceRecorderPlugin which provides methods to record audio.
  */
 export interface VoiceRecorderPlugin {
@@ -196,6 +203,19 @@ export interface VoiceRecorderPlugin {
     addListener(
         eventName: 'voiceRecordingInterruptionEnded',
         listenerFunc: (event: VoiceRecordingInterruptionEndedEvent) => void,
+    ): Promise<PluginListenerHandle>;
+
+    /**
+     * Receive updates of the volume.
+     * Available on iOS and Android only.
+     *
+     * @param eventName The name of the event to listen for.
+     * @param listenerFunc The callback function to invoke when the event occurs.
+     * @returns A promise that resolves to a PluginListenerHandle.
+     */
+    addListener(
+        eventName: 'volumeChanged',
+        listenerFunc: (event: VoiceRecordingVolumeChangedEvent) => void,
     ): Promise<PluginListenerHandle>;
 
     /**
