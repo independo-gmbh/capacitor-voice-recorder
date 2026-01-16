@@ -19,7 +19,7 @@
     "@independo/capacitor-voice-recorder": "file:.."
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.0.0",
+    "@capacitor/cli": "^8.0.1",
     "vite": "^7.3.1"
   },
   "author": "",
