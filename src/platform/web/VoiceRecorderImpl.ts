@@ -312,9 +312,15 @@ export class VolumeMeter {
         update();
     }
 
-    public stop(): void {
+    public async stop(): Promise<void> {
         if (this.animationId) cancelAnimationFrame(this.animationId);
-        if (this.audioContext) this.audioContext.close();
+        if (this.audioContext) {
+            try {
+                await this.audioContext.close();
+            } catch (error) {
+                console.error('Failed to close AudioContext in VolumeMeter.stop:', error);
+            }
+        }
         this.audioContext = null;
         this.analyser = null;
     }
