@@ -59,8 +59,8 @@ final class CustomMediaRecorderTests: XCTestCase {
         func updateMeters() {}
 
         func averagePower(forChannel channelNumber: Int) -> Float {
-        	return 0.0
-        }
+			return 0.0
+		}
     }
 
     private final class AudioRecorderFactorySpy {
