@@ -109,6 +109,10 @@
     {
       "email": "admin@independo.app",
       "name": "Independo GmbH"
+    },
+    {
+      "email": "hello@klve.nl",
+      "name": "Kelley van Evert"
     }
   ],
   "peerDependencies": {
