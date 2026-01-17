@@ -325,6 +325,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     private void stopVolumeMetering() {
         if (volumeRunnable != null) {
             handlerProvider.removeCallbacks(volumeRunnable);
+            volumeRunnable = null;
         }
     }
 

@@ -101,10 +101,8 @@ class CustomMediaRecorder: RecorderAdapter {
         let kneePoint: Float = 0.8
 
         if rawLinear <= threshold {
-            // Map 0 - 0.15 up to 0 - 0.8 using a square root for sensitivity
             return sqrt(rawLinear / threshold) * kneePoint
         } else {
-            // Map 0.15 - 1.0 to 0.8 - 1.0
             let excess = (rawLinear - threshold) / (1.0 - threshold)
             return kneePoint + (excess * (1.0 - kneePoint))
         }
