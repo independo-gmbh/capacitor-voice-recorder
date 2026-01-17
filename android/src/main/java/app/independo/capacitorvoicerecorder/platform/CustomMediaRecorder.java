@@ -330,7 +330,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
 
     private float calculateVisualLevel(float rawLinear) {
         float threshold = 0.15f;
-        float kneePoint = 1.0f - threshold;
+        float kneePoint = 0.8f;
 
         if (rawLinear <= threshold) {
             return (float) Math.sqrt(rawLinear / threshold) * kneePoint;

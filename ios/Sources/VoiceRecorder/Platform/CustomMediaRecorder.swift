@@ -98,7 +98,7 @@ class CustomMediaRecorder: RecorderAdapter {
 
     private func calculateVisualLevel(from rawLinear: Float) -> Float {
         let threshold: Float = 0.15
-        let kneePoint = 1.0 - threshold
+        let kneePoint: Float = 0.8
 
         if rawLinear <= threshold {
             // Map 0 - 0.15 up to 0 - 0.8 using a square root for sensitivity
