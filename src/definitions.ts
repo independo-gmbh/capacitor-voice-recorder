@@ -213,8 +213,7 @@ export interface VoiceRecorderPlugin {
     ): Promise<PluginListenerHandle>;
 
     /**
-     * Receive updates of the volume.
-     * Available on iOS and Android only.
+     * Receive updates of the volume, see `VoiceRecordingVolumeChangedEvent`.
      *
      * @param eventName The name of the event to listen for.
      * @param listenerFunc The callback function to invoke when the event occurs.
