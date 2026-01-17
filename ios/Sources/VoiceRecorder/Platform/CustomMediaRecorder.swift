@@ -117,25 +117,27 @@ class CustomMediaRecorder: RecorderAdapter {
         	return
         }
 
+        self.lowPassVolume = 0.0
+
         let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
+            guard let self = self, let recorder = self.audioRecorder else {
+            	self?.stopVolumeMetering()
+            	return
+            }
 
-            // We use the protocol methods directly now since they are in AudioRecorderProtocol
-            if self.audioRecorder != nil {
-                self.audioRecorder.updateMeters()
-                let averagePower = self.audioRecorder.averagePower(forChannel: 0)
+            recorder.updateMeters()
+            let averagePower = recorder.averagePower(forChannel: 0)
 
-                // Convert dB (-160 to 0) to linear (0.0 to 1.0)
-                let rawLinearLevel = pow(10, averagePower / 20)
+            // Convert dB (-160 to 0) to linear (0.0 to 1.0)
+            let rawLinearLevel = pow(10, averagePower / 20)
 
-                let visualLevel = self.calculateVisualLevel(from: rawLinearLevel)
+            let visualLevel = self.calculateVisualLevel(from: rawLinearLevel)
 
-                // Apply a Low-Pass Filter for smoothness
-                self.lowPassVolume = (0.5 * visualLevel) + (0.5 * self.lowPassVolume)
+            // Apply a Low-Pass Filter for smoothness
+            self.lowPassVolume = (0.5 * visualLevel) + (0.5 * self.lowPassVolume)
 
-                DispatchQueue.main.async {
-                    self.onVolumeChanged?(self.lowPassVolume)
-                }
+            DispatchQueue.main.async {
+                self.onVolumeChanged?(self.lowPassVolume)
             }
         }
 

@@ -39,9 +39,26 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
             }
         }
 
-        @Override public void post(Runnable r) { handler.post(r); }
-        @Override public void postDelayed(Runnable r, long d) { handler.postDelayed(r, d); }
-        @Override public void removeCallbacks(Runnable r) { handler.removeCallbacks(r); }
+        @Override
+        public void post(Runnable r) {
+            if (handler != null) {
+                handler.post(r);
+            }
+        }
+
+        @Override
+        public void postDelayed(Runnable r, long d) {
+            if (handler != null) {
+                handler.postDelayed(r, d);
+            }
+        }
+
+        @Override
+        public void removeCallbacks(Runnable r) {
+            if (handler != null) {
+                handler.removeCallbacks(r);
+            }
+        }
     }
 
     interface MediaRecorderFactory {
@@ -279,6 +296,8 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         }
 
         handlerProvider.setupHandler();
+
+        lowPassVolume = 0.0f;
 
         volumeRunnable = new Runnable() {
             @Override
