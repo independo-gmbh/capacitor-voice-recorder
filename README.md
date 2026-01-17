@@ -14,6 +14,10 @@
   <a href="https://codecov.io/gh/independo-gmbh/capacitor-voice-recorder/branch/master"><img src="https://codecov.io/gh/independo-gmbh/capacitor-voice-recorder/branch/master/graph/badge.svg" alt="Coverage Badge: master" /></a>
 </p>
 
+## Overview
+
+The `@independo/capacitor-voice-recorder` plugin allows you to record audio on Android, iOS, and Web platforms.
+
 ## Installation
 
 ```
@@ -21,23 +25,9 @@ npm install --save @independo/capacitor-voice-recorder
 npx cap sync
 ```
 
-## Requirements
+### Configuration
 
-- Capacitor 8+
-- iOS 15+
-- Android minSdk 24+; builds require Java 21 (recommended). `npm run verify:android` requires a Java version supported
-  by the bundled Gradle wrapper (currently Java 21–24, with Java 21 recommended).
-
-## iOS Package Manager Support
-
-This plugin supports both CocoaPods and Swift Package Manager (SPM) on iOS.
-
-- CocoaPods (default Capacitor iOS template): `npx cap sync ios`
-- Swift Package Manager (SPM): migrate/create your iOS app to use SPM, then run `npx cap sync ios`
-
-## Configuration
-
-### Using with Android
+#### Using with Android
 
 Add the following to your `AndroidManifest.xml`:
 
@@ -45,7 +35,7 @@ Add the following to your `AndroidManifest.xml`:
 <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 ```
 
-### Using with iOS
+#### Using with iOS
 
 Add the following to your `Info.plist`:
 
@@ -54,9 +44,52 @@ Add the following to your `Info.plist`:
 <string>This app uses the microphone to record audio.</string>
 ```
 
-## Overview
+### Requirements
 
-The `@independo/capacitor-voice-recorder` plugin allows you to record audio on Android, iOS, and Web platforms.
+- Capacitor 8+
+- iOS 15+
+- Android minSdk 24+; builds require Java 21 (recommended). `npm run verify:android` requires a Java version supported
+  by the bundled Gradle wrapper (currently Java 21–24, with Java 21 recommended).
+
+### Compatibility
+
+Versioning follows Capacitor versioning. Major versions of the plugin are compatible with major versions of Capacitor.
+
+| Plugin Version | Capacitor Version | Status     |
+|----------------|-------------------|------------|
+| 8.*            | 8                 | Active     |
+| 7.*            | 7                 | Deprecated |
+| 6.*            | 6                 | Deprecated |
+| 5.*            | 5                 | Deprecated |
+
+### iOS Package Manager Support
+
+This plugin supports both CocoaPods and Swift Package Manager (SPM) on iOS.
+
+- CocoaPods (default Capacitor iOS template): `npx cap sync ios`
+- Swift Package Manager (SPM): migrate/create your iOS app to use SPM, then run `npx cap sync ios`
+
+## Quick start
+
+Minimal flow for starting and stopping a recording:
+
+```typescript
+import {VoiceRecorder} from '@independo/capacitor-voice-recorder';
+
+export const startRecording = async () => {
+    const permission = await VoiceRecorder.requestAudioRecordingPermission();
+    if (!permission.value) {
+        throw new Error('Microphone permission not granted');
+    }
+
+    await VoiceRecorder.startRecording();
+};
+
+export const stopRecording = async () => {
+    const {value} = await VoiceRecorder.stopRecording();
+    return value;
+};
+```
 
 ## API
 
@@ -341,7 +374,9 @@ Event payload for voiceRecordingInterrupted event (empty - no data).
 
 Construct a type with a set of properties K of type T
 
-<code>{ [P in K]: T; }</code>
+<code>{
+ [P in K]: T;
+ }</code>
 
 
 #### VoiceRecordingInterruptionEndedEvent
@@ -370,7 +405,9 @@ Event payload for voiceRecordingInterruptionEnded event (empty - no data).
 
 </docgen-api>
 
-## Audio interruption handling
+## Platform behaviors
+
+### Interruption handling (iOS and Android)
 
 On iOS and Android, the plugin listens for system audio interruptions (phone calls, other apps taking audio focus). When
 an interruption begins, the recording is paused, the status becomes `INTERRUPTED`, and the `voiceRecordingInterrupted`
@@ -379,6 +416,32 @@ event fires. When the interruption ends, the `voiceRecordingInterruptionEnded` e
 
 If interruptions occur on iOS, recordings are segmented and merged when you stop. The merged file is M4A with MIME type
 `audio/mp4`. Recordings without interruptions remain AAC with MIME type `audio/aac`.
+
+### Web constraints
+
+- `getUserMedia` requires a secure context (HTTPS or localhost).
+- Most browsers require a user gesture to start recording; call `startRecording()` from a click/tap handler.
+- The Permissions API is not consistently supported; `hasAudioRecordingPermission()` can reject with
+  `COULD_NOT_QUERY_PERMISSION_STATUS`. In that case, use `requestAudioRecordingPermission()` or `startRecording()` and
+  handle errors.
+
+## Recording options and storage
+
+When you set `RecordingOptions.directory`, recordings are written to the Capacitor filesystem and `stopRecording()`
+returns a `uri`. This avoids large base64 payloads and is recommended for long recordings. When `directory` is not set,
+the data is returned in `recordDataBase64`.
+
+When a `uri` is present, `recordDataBase64` may be empty or omitted, so prefer `uri` when available.
+
+```typescript
+import {Directory} from '@capacitor/filesystem';
+import {VoiceRecorder} from '@independo/capacitor-voice-recorder';
+
+await VoiceRecorder.startRecording({
+    directory: Directory.Cache,
+    subDirectory: 'voice',
+});
+```
 
 ## Format and MIME type
 
@@ -412,16 +475,26 @@ audioRef.oncanplaythrough = () => audioRef.play();
 audioRef.load();
 ```
 
-## Compatibility
+## Troubleshooting
 
-Versioning follows Capacitor versioning. Major versions of the plugin are compatible with major versions of Capacitor.
+### Common error codes
 
-| Plugin Version | Capacitor Version |
-|----------------|-------------------|
-| 5.*            | 5                 |
-| 6.*            | 6                 |
-| 7.*            | 7                 |
-| 8.*            | 8                 |
+The plugin rejects with error codes; check `error.code` (native) or `error.message` (web). Not all codes apply to every
+platform.
+
+| Code                                | Platform(s)       | Typical cause                                                                   |
+|-------------------------------------|-------------------|---------------------------------------------------------------------------------|
+| `MISSING_PERMISSION`                | iOS, Android, Web | Microphone permission is not granted.                                           |
+| `ALREADY_RECORDING`                 | iOS, Android, Web | `startRecording()` called while already recording.                              |
+| `DEVICE_CANNOT_VOICE_RECORD`        | iOS, Android, Web | The device or browser cannot record audio.                                      |
+| `FAILED_TO_RECORD`                  | iOS, Android, Web | Recording failed to start or continue.                                          |
+| `RECORDING_HAS_NOT_STARTED`         | iOS, Android, Web | `stopRecording()`, `pauseRecording()`, or `resumeRecording()` called too early. |
+| `EMPTY_RECORDING`                   | iOS, Android, Web | Recording stopped too quickly or produced no data.                              |
+| `FAILED_TO_FETCH_RECORDING`         | iOS, Android, Web | The recording could not be read back.                                           |
+| `FAILED_TO_MERGE_RECORDING`         | iOS               | Interrupted recording segments failed to merge.                                 |
+| `MICROPHONE_BEING_USED`             | Android           | The microphone is busy or held by another app.                                  |
+| `NOT_SUPPORTED_OS_VERSION`          | Android           | Pause/resume is not supported on the current OS version.                        |
+| `COULD_NOT_QUERY_PERMISSION_STATUS` | Web               | Permissions API is unavailable.                                                 |
 
 ## Origins and credit
 
@@ -430,3 +503,4 @@ This project started as a fork of [
 Thanks to Avihu Harush for the original implementation and community groundwork. Since then, the plugin has been
 re-architected for improved performance, reliability, and testability (service/adapters split, contract tests, and a
 normalized response path). The codebase now diverges substantially, which is why this repo left the fork network.
+This plugin is maintained by [Independo GmbH](https://www.independo.app/).
