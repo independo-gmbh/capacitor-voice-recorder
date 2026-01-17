@@ -313,7 +313,10 @@ export class VolumeMeter {
     }
 
     public async stop(): Promise<void> {
-        if (this.animationId) cancelAnimationFrame(this.animationId);
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
         if (this.audioContext) {
             try {
                 await this.audioContext.close();
