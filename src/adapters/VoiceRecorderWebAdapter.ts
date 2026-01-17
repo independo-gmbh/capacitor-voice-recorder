@@ -28,8 +28,8 @@ export class VoiceRecorderWebAdapter implements VoiceRecorderPlatform {
     }
 
     /** Starts a recording session using MediaRecorder. */
-    public startRecording(options?: RecordingOptions): Promise<GenericResponse> {
-        return this.voiceRecorderImpl.startRecording(options);
+    public startRecording(options?: RecordingOptions, onVolumeChanged?: (volume: number) => void): Promise<GenericResponse> {
+        return this.voiceRecorderImpl.startRecording(options, onVolumeChanged);
     }
 
     /** Stops the recording session and returns the payload. */
