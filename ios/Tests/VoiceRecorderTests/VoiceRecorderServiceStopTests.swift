@@ -36,7 +36,8 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
 
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
-                                   onInterruptionEnded: {})
+                                   onInterruptionEnded: {},
+                                   onVolumeChanged: { volume in })
 
         let expectation = XCTestExpectation(description: "stopRecording")
         service.stopRecording { result in
@@ -65,7 +66,8 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
 
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
-                                   onInterruptionEnded: {})
+                                   onInterruptionEnded: {},
+                                   onVolumeChanged: { volume in })
 
         let expectation = XCTestExpectation(description: "stopRecording")
         service.stopRecording { result in
@@ -97,7 +99,8 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
 
         try service.startRecording(options: RecordOptions(directory: "CACHE", subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
-                                   onInterruptionEnded: {})
+                                   onInterruptionEnded: {},
+                                   onVolumeChanged: { volume in })
 
         let expectation = XCTestExpectation(description: "stopRecording")
         service.stopRecording { result in
@@ -129,7 +132,8 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
 
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
-                                   onInterruptionEnded: {})
+                                   onInterruptionEnded: {},
+                                   onVolumeChanged: { volume in })
 
         let expectation = XCTestExpectation(description: "stopRecording")
         service.stopRecording { result in
@@ -156,7 +160,8 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
 
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
-                                   onInterruptionEnded: {})
+                                   onInterruptionEnded: {},
+                                   onVolumeChanged: { volume in })
 
         let expectation = XCTestExpectation(description: "stopRecording")
         service.stopRecording { result in
@@ -183,7 +188,8 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
 
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
-                                   onInterruptionEnded: {})
+                                   onInterruptionEnded: {},
+                                   onVolumeChanged: { volume in })
 
         let expectation = XCTestExpectation(description: "stopRecording")
         service.stopRecording { result in
@@ -209,7 +215,8 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
 
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
-                                   onInterruptionEnded: {})
+                                   onInterruptionEnded: {},
+                                   onVolumeChanged: { volume in })
 
         let expectation = XCTestExpectation(description: "stopRecording")
         service.stopRecording { _ in

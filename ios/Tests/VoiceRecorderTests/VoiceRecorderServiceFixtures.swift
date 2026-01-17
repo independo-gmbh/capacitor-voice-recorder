@@ -26,6 +26,7 @@ final class VoiceRecorderServiceFixtures {
         var options: RecordOptions?
         var onInterruptionBegan: (() -> Void)?
         var onInterruptionEnded: (() -> Void)?
+        var onVolumeChanged: ((Float) -> Void)?
         var outputFile: URL = URL(fileURLWithPath: "/tmp/recording.aac")
         var status: CurrentRecordingStatus = .NONE
         var stopSuccess = true

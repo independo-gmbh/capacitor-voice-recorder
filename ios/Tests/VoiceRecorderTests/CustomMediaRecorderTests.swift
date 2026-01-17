@@ -41,6 +41,7 @@ final class CustomMediaRecorderTests: XCTestCase {
         var recordCallCount = 0
         var stopCallCount = 0
         var pauseCallCount = 0
+        public var isMeteringEnabled = false
 
         func record() -> Bool {
             recordCallCount += 1
@@ -53,6 +54,12 @@ final class CustomMediaRecorderTests: XCTestCase {
 
         func pause() {
             pauseCallCount += 1
+        }
+
+        func updateMeters() {}
+
+        func averagePower(forChannel channelNumber: Int) -> Float {
+        	return 0.0
         }
     }
 
