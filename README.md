@@ -302,8 +302,7 @@ Available on iOS and Android only.
 addListener(eventName: 'volumeChanged', listenerFunc: (event: VoiceRecordingVolumeChangedEvent) => void) => Promise<PluginListenerHandle>
 ```
 
-Receive updates of the volume.
-Available on iOS and Android only.
+Receive updates of the volume, see <a href="#voicerecordingvolumechangedevent">`VoiceRecordingVolumeChangedEvent`</a>.
 
 | Param              | Type                                                                                                              | Description                                            |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
