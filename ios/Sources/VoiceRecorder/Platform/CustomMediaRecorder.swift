@@ -114,15 +114,15 @@ class CustomMediaRecorder: RecorderAdapter {
         stopVolumeMetering()
 
         guard options?.volumeMetering == true else {
-        	return
+            return
         }
 
         self.lowPassVolume = 0.0
 
         let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
             guard let self = self, let recorder = self.audioRecorder else {
-            	self?.stopVolumeMetering()
-            	return
+                self?.stopVolumeMetering()
+                return
             }
 
             recorder.updateMeters()
