@@ -342,10 +342,11 @@ Interface representing a generic response with a boolean value.
 
 Can be used to specify options for the recording.
 
-| Prop               | Type                                            | Description                                                                                                                                                                                                        |
-| ------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **`directory`**    | <code><a href="#directory">Directory</a></code> | The capacitor filesystem directory where the recording should be saved. If not specified, the recording will be stored in a base64 string and returned in the <a href="#recordingdata">`RecordingData`</a> object. |
-| **`subDirectory`** | <code>string</code>                             | An optional subdirectory in the specified directory where the recording should be saved.                                                                                                                           |
+| Prop                 | Type                                            | Description                                                                                                                                                                                                        |
+| -------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`directory`**      | <code><a href="#directory">Directory</a></code> | The capacitor filesystem directory where the recording should be saved. If not specified, the recording will be stored in a base64 string and returned in the <a href="#recordingdata">`RecordingData`</a> object. |
+| **`subDirectory`**   | <code>string</code>                             | An optional subdirectory in the specified directory where the recording should be saved.                                                                                                                           |
+| **`volumeMetering`** | <code>boolean</code>                            | Whether to run volume metering. If set to `true`, volume updates can be received using `addEventListener("volumeChanged")`.                                                                                        |
 
 
 #### RecordingData
@@ -394,9 +395,7 @@ Event payload for voiceRecordingInterrupted event (empty - no data).
 
 Construct a type with a set of properties K of type T
 
-<code>{
- [P in K]: T;
- }</code>
+<code>{ [P in K]: T; }</code>
 
 
 #### VoiceRecordingInterruptionEndedEvent
@@ -408,7 +407,9 @@ Event payload for voiceRecordingInterruptionEnded event (empty - no data).
 
 #### VoiceRecordingVolumeChangedEvent
 
-Event payload for receiving the recording volume.
+Event payload for receiving the recording volume. If `volumeMetering` is set to `true` when calling `startRecording()`,
+ you will receive these events every 50ms. The `volume` will be a float between 0 and 1, with a logarithmic mapping
+ and a 'knee' at 0.8.
 
 <code>{ volume: number, }</code>
 

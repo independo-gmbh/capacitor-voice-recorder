@@ -110,8 +110,12 @@ class CustomMediaRecorder: RecorderAdapter {
         }
     }
 
-    private func startVolumeMonitoring() {
-        stopVolumeMonitoring()
+    private func startVolumeMetering() {
+        stopVolumeMetering()
+
+        guard options?.volumeMetering == true else {
+        	return
+        }
 
         let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
             guard let self = self else { return }
@@ -139,7 +143,7 @@ class CustomMediaRecorder: RecorderAdapter {
         self.levelTimer = timer
     }
 
-    private func stopVolumeMonitoring() {
+    private func stopVolumeMetering() {
         levelTimer?.invalidate()
         levelTimer = nil
     }
@@ -158,7 +162,7 @@ class CustomMediaRecorder: RecorderAdapter {
             audioRecorder.isMeteringEnabled = true
             setupInterruptionHandling()
             audioRecorder.record()
-            startVolumeMonitoring()
+            startVolumeMetering()
             status = CurrentRecordingStatus.RECORDING
             return true
         } catch {
@@ -169,7 +173,7 @@ class CustomMediaRecorder: RecorderAdapter {
     /// Stops recording and merges segments if needed.
     public func stopRecording(completion: @escaping (Bool) -> Void) {
         removeInterruptionHandling()
-        stopVolumeMonitoring()
+        stopVolumeMetering()
         audioRecorder.stop()
 
         let finalizeStop: (Bool) -> Void = { [weak self] success in
@@ -229,7 +233,7 @@ class CustomMediaRecorder: RecorderAdapter {
     /// Pauses recording when currently active.
     public func pauseRecording() -> Bool {
         if(status == CurrentRecordingStatus.RECORDING) {
-            stopVolumeMonitoring()
+            stopVolumeMetering()
             audioRecorder.pause()
             status = CurrentRecordingStatus.PAUSED
             return true
@@ -254,7 +258,7 @@ class CustomMediaRecorder: RecorderAdapter {
                 }
                 audioRecorder.isMeteringEnabled = true
                 audioRecorder.record()
-                startVolumeMonitoring()
+                startVolumeMetering()
                 status = CurrentRecordingStatus.RECORDING
                 return true
             } catch {

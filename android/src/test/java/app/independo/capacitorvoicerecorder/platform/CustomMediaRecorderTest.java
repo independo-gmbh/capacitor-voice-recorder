@@ -89,7 +89,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions(null, null),
+            new RecordOptions(null, null, false),
             mediaRecorder,
             audioManager,
             cacheDir,
@@ -111,7 +111,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache-o");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions(null, null),
+            new RecordOptions(null, null, false),
             mediaRecorder,
             audioManager,
             cacheDir,
@@ -133,7 +133,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache-stop");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions(null, null),
+            new RecordOptions(null, null, false),
             mediaRecorder,
             audioManager,
             cacheDir,
@@ -157,7 +157,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache-stop-o");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions(null, null),
+            new RecordOptions(null, null, false),
             mediaRecorder,
             audioManager,
             cacheDir,
@@ -179,7 +179,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache-stop-fail");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions(null, null),
+            new RecordOptions(null, null, false),
             mediaRecorder,
             audioManager,
             cacheDir,
@@ -202,7 +202,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache-legacy");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions(null, null),
+            new RecordOptions(null, null, false),
             mediaRecorder,
             audioManager,
             cacheDir,
@@ -226,7 +226,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache-pause");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions(null, null),
+            new RecordOptions(null, null, false),
             mediaRecorder,
             audioManager,
             cacheDir,
@@ -249,7 +249,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache-resume");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions(null, null),
+            new RecordOptions(null, null, false),
             mediaRecorder,
             audioManager,
             cacheDir,
@@ -275,7 +275,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache-focus-loss");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions(null, null),
+            new RecordOptions(null, null, false),
             mediaRecorder,
             audioManager,
             cacheDir,
@@ -300,7 +300,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache-focus-gain");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions(null, null),
+            new RecordOptions(null, null, false),
             mediaRecorder,
             audioManager,
             cacheDir,
@@ -325,7 +325,7 @@ public class CustomMediaRecorderTest {
         AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
         File cacheDir = tempFolder.newFolder("cache-output");
         CustomMediaRecorder recorder = createRecorder(
-            new RecordOptions("CACHE", "/voice-tests/"),
+            new RecordOptions("CACHE", "/voice-tests/", false),
             mediaRecorder,
             audioManager,
             cacheDir,

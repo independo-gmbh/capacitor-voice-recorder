@@ -19,7 +19,7 @@ public class VoiceRecorderServiceStartTest {
 
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
-            () -> service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {})
+            () -> service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {})
         );
 
         assertEquals(ErrorCodes.DEVICE_CANNOT_VOICE_RECORD, exception.getCode());
@@ -32,7 +32,7 @@ public class VoiceRecorderServiceStartTest {
 
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
-            () -> service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {})
+            () -> service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {})
         );
 
         assertEquals(ErrorCodes.MISSING_PERMISSION, exception.getCode());
@@ -46,7 +46,7 @@ public class VoiceRecorderServiceStartTest {
 
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
-            () -> service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {})
+            () -> service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {})
         );
 
         assertEquals(ErrorCodes.MICROPHONE_BEING_USED, exception.getCode());
@@ -57,11 +57,11 @@ public class VoiceRecorderServiceStartTest {
         VoiceRecorderServiceFixtures.FakePlatform platform = VoiceRecorderServiceFixtures.createPlatform();
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
+        service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {});
 
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
-            () -> service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {})
+            () -> service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {})
         );
 
         assertEquals(ErrorCodes.ALREADY_RECORDING, exception.getCode());
@@ -75,7 +75,7 @@ public class VoiceRecorderServiceStartTest {
 
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
-            () -> service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {})
+            () -> service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {})
         );
 
         assertEquals(ErrorCodes.FAILED_TO_RECORD, exception.getCode());
@@ -89,7 +89,7 @@ public class VoiceRecorderServiceStartTest {
 
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
-            () -> service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {})
+            () -> service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {})
         );
 
         assertEquals(ErrorCodes.FAILED_TO_RECORD, exception.getCode());
@@ -100,7 +100,7 @@ public class VoiceRecorderServiceStartTest {
         VoiceRecorderServiceFixtures.FakePlatform platform = VoiceRecorderServiceFixtures.createPlatform();
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
+        service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {});
 
         assertNotNull(platform.recorder.onInterruptionBegan);
         assertNotNull(platform.recorder.onInterruptionEnded);
@@ -111,7 +111,7 @@ public class VoiceRecorderServiceStartTest {
         VoiceRecorderServiceFixtures.FakePlatform platform = VoiceRecorderServiceFixtures.createPlatform();
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
+        service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {});
 
         assertEquals(CurrentRecordingStatus.RECORDING, service.getCurrentStatus());
     }

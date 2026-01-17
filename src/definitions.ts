@@ -22,6 +22,11 @@ export interface RecordingOptions {
      * An optional subdirectory in the specified directory where the recording should be saved.
      */
     subDirectory?: string;
+
+    /**
+     * Whether to run volume metering. If set to `true`, volume updates can be received using `addEventListener("volumeChanged")`.
+     */
+    volumeMetering?: boolean;
 }
 
 /**
@@ -83,7 +88,9 @@ export type VoiceRecordingInterruptedEvent = Record<string, never>;
 export type VoiceRecordingInterruptionEndedEvent = Record<string, never>;
 
 /**
- * Event payload for receiving the recording volume.
+ * Event payload for receiving the recording volume. If `volumeMetering` is set to `true` when calling `startRecording()`,
+ *  you will receive these events every 50ms. The `volume` will be a float between 0 and 1, with a logarithmic mapping
+ *  and a 'knee' at 0.8.
  */
 export type VoiceRecordingVolumeChangedEvent = {
   volume: number,

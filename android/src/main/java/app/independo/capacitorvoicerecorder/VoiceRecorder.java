@@ -79,7 +79,8 @@ public class VoiceRecorder extends Plugin {
         try {
             String directory = call.getString("directory");
             String subDirectory = call.getString("subDirectory");
-            RecordOptions options = new RecordOptions(directory, subDirectory);
+            Boolean volumeMetering = call.getBoolean("volumeMetering", false);
+            RecordOptions options = new RecordOptions(directory, subDirectory, volumeMetering.booleanValue());
             service.startRecording(
                 options,
                 () -> notifyListeners("voiceRecordingInterrupted", null),

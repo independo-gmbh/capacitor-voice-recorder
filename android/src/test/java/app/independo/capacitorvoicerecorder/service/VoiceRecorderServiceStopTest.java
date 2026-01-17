@@ -34,7 +34,7 @@ public class VoiceRecorderServiceStopTest {
         platform.recorder.outputFile = null;
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
+        service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {});
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
             service::stopRecording
@@ -50,7 +50,7 @@ public class VoiceRecorderServiceStopTest {
         platform.durationMs = 1500;
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
+        service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {});
         RecordData data = service.stopRecording();
 
         assertEquals("BASE64", data.getRecordDataBase64());
@@ -69,7 +69,7 @@ public class VoiceRecorderServiceStopTest {
         platform.durationMs = 2000;
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions("CACHE", null), () -> {}, () -> {}, (Float volume) -> {});
+        service.startRecording(new RecordOptions("CACHE", null, false), () -> {}, () -> {}, (Float volume) -> {});
         RecordData data = service.stopRecording();
 
         assertNull(data.getRecordDataBase64());
@@ -86,7 +86,7 @@ public class VoiceRecorderServiceStopTest {
         platform.durationMs = 1200;
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
+        service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {});
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
             service::stopRecording
@@ -102,7 +102,7 @@ public class VoiceRecorderServiceStopTest {
         platform.durationMs = -1;
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
+        service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {});
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
             service::stopRecording
@@ -117,7 +117,7 @@ public class VoiceRecorderServiceStopTest {
         platform.readThrows = true;
         VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
 
-        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {}, (Float volume) -> {});
+        service.startRecording(new RecordOptions(null, null, false), () -> {}, () -> {}, (Float volume) -> {});
         VoiceRecorderServiceException exception = assertThrows(
             VoiceRecorderServiceException.class,
             service::stopRecording

@@ -99,7 +99,8 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
 
         let directory: String? = call.getString("directory")
         let subDirectory: String? = call.getString("subDirectory")
-        let recordOptions = RecordOptions(directory: directory, subDirectory: subDirectory)
+        let volumeMetering: Bool = call.getBool("volumeMetering") ?? false
+        let recordOptions = RecordOptions(directory: directory, subDirectory: subDirectory, volumeMetering: volumeMetering)
         do {
             try service.startRecording(
                 options: recordOptions,

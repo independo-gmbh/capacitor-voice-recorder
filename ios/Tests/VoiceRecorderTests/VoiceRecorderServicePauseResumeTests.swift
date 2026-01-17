@@ -26,7 +26,7 @@ final class VoiceRecorderServicePauseResumeTests: XCTestCase {
             permissionGranted: true
         )
 
-        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {})
 
@@ -43,7 +43,7 @@ final class VoiceRecorderServicePauseResumeTests: XCTestCase {
             permissionGranted: true
         )
 
-        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {})
 
@@ -75,7 +75,7 @@ final class VoiceRecorderServicePauseResumeTests: XCTestCase {
             permissionGranted: true
         )
 
-        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {})
         XCTAssertTrue(try service.pauseRecording())
@@ -93,7 +93,7 @@ final class VoiceRecorderServicePauseResumeTests: XCTestCase {
             permissionGranted: true
         )
 
-        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {})
         XCTAssertTrue(try service.pauseRecording())

@@ -13,7 +13,7 @@ final class VoiceRecorderServiceStartTests: XCTestCase {
         )
 
         XCTAssertThrowsError(
-            try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+            try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                        onInterruptionBegan: {},
                                        onInterruptionEnded: {})
         ) { error in
@@ -31,7 +31,7 @@ final class VoiceRecorderServiceStartTests: XCTestCase {
         )
 
         XCTAssertThrowsError(
-            try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+            try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                        onInterruptionBegan: {},
                                        onInterruptionEnded: {})
         ) { error in
@@ -48,12 +48,12 @@ final class VoiceRecorderServiceStartTests: XCTestCase {
             permissionGranted: true
         )
 
-        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {})
 
         XCTAssertThrowsError(
-            try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+            try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                        onInterruptionBegan: {},
                                        onInterruptionEnded: {})
         ) { error in
@@ -72,7 +72,7 @@ final class VoiceRecorderServiceStartTests: XCTestCase {
         )
 
         XCTAssertThrowsError(
-            try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+            try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                        onInterruptionBegan: {},
                                        onInterruptionEnded: {})
         ) { error in
@@ -89,7 +89,7 @@ final class VoiceRecorderServiceStartTests: XCTestCase {
             permissionGranted: true
         )
 
-        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {})
 

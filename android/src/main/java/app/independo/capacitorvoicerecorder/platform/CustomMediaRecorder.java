@@ -33,7 +33,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
 
         @Override
         public void setupHandler() {
-            // This is only called when startVolumeMonitoring() runs
+            // This is only called when startVolumeMetering() runs
             if (handler == null) {
                 handler = new Handler(Looper.getMainLooper());
             }
@@ -273,7 +273,11 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         };
     }
 
-    private void startVolumeMonitoring() {
+    private void startVolumeMetering() {
+        if (!options.volumeMetering()) {
+            return;
+        }
+
         handlerProvider.setupHandler();
 
         volumeRunnable = new Runnable() {
@@ -299,7 +303,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         handlerProvider.post(volumeRunnable);
     }
 
-    private void stopVolumeMonitoring() {
+    private void stopVolumeMetering() {
         if (volumeRunnable != null) {
             handlerProvider.removeCallbacks(volumeRunnable);
         }
@@ -321,13 +325,13 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     public void startRecording() {
         requestAudioFocus();
         mediaRecorder.start();
-        startVolumeMonitoring();
+        startVolumeMetering();
         currentRecordingStatus = CurrentRecordingStatus.RECORDING;
     }
 
     /** Stops recording and releases audio resources. */
     public void stopRecording() {
-        stopVolumeMonitoring();
+        stopVolumeMetering();
 
         if (mediaRecorder == null) {
             abandonAudioFocus();
@@ -368,7 +372,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
 
         if (currentRecordingStatus == CurrentRecordingStatus.RECORDING) {
             mediaRecorder.pause();
-            stopVolumeMonitoring();
+            stopVolumeMetering();
             currentRecordingStatus = CurrentRecordingStatus.PAUSED;
             return true;
         } else {
@@ -385,7 +389,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         if (currentRecordingStatus == CurrentRecordingStatus.PAUSED || currentRecordingStatus == CurrentRecordingStatus.INTERRUPTED) {
             requestAudioFocus();
             mediaRecorder.resume();
-            startVolumeMonitoring();
+            startVolumeMetering();
             currentRecordingStatus = CurrentRecordingStatus.RECORDING;
             return true;
         } else {
@@ -412,7 +416,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     private static boolean canPhoneCreateMediaRecorderWhileHavingPermission(Context context) {
         CustomMediaRecorder tempMediaRecorder = null;
         try {
-            tempMediaRecorder = new CustomMediaRecorder(context, new RecordOptions(null, null));
+            tempMediaRecorder = new CustomMediaRecorder(context, new RecordOptions(null, null, false));
             tempMediaRecorder.startRecording();
             tempMediaRecorder.stopRecording();
             return true;
@@ -463,7 +467,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
                     try {
                         if (sdkIntProvider.getSdkInt() >= Build.VERSION_CODES.N) {
                             mediaRecorder.pause();
-                            stopVolumeMonitoring();
+                            stopVolumeMetering();
                             currentRecordingStatus = CurrentRecordingStatus.INTERRUPTED;
                             if (onInterruptionBegan != null) {
                                 onInterruptionBegan.run();
