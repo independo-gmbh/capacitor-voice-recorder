@@ -236,14 +236,40 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         this.onVolumeChanged = callback;
     }
 
+    public boolean isUnprocessedSourceSupported() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            if (audioManager != null) {
+                String support = audioManager.getProperty(AudioManager.PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED);
+                return "true".equals(support);
+            }
+        }
+        return false;
+    }
+
     /** Configures the MediaRecorder with audio settings. */
     private void generateMediaRecorder() throws IOException {
         mediaRecorder = mediaRecorderFactory.create();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setAudioEncodingBitRate(96000);
-        mediaRecorder.setAudioSamplingRate(44100);
+
+        if (true) {
+            if (isUnprocessedSourceSupported()) {
+                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.UNPROCESSED);
+            } else {
+                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
+            }
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mediaRecorder.setAudioEncodingBitRate(128000);
+            mediaRecorder.setAudioSamplingRate(44100);
+            mediaRecorder.setAudioChannels(1); // added, because we're recording a voice
+        } else {
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mediaRecorder.setAudioEncodingBitRate(96000);
+            mediaRecorder.setAudioSamplingRate(44100);
+        }
+
         setRecorderOutputFile();
         mediaRecorder.prepare();
     }
