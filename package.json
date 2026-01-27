@@ -15,9 +15,9 @@
   "description": "Capacitor plugin for voice recording",
   "version": "8.1.4",
   "devDependencies": {
-    "@capacitor/android": "^8.0.1",
-    "@capacitor/core": "^8.0.1",
-    "@capacitor/ios": "^8.0.1",
+    "@capacitor/android": "^8.0.2",
+    "@capacitor/core": "^8.0.2",
+    "@capacitor/ios": "^8.0.2",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "jest-environment-jsdom": "^30.2.0",
     "jest": "^30.2.0",
