@@ -17,7 +17,7 @@ export interface VoiceRecorderPlatform {
     /** Requests microphone permission from the user. */
     requestAudioRecordingPermission(): Promise<GenericResponse>;
     /** Starts a recording session. */
-    startRecording(options?: RecordingOptions): Promise<GenericResponse>;
+    startRecording(options?: RecordingOptions, onVolumeChanged?: (volume: number) => void): Promise<GenericResponse>;
     /** Stops the current recording session and returns the payload. */
     stopRecording(): Promise<RecordingData>;
     /** Pauses the recording session when supported. */
@@ -56,8 +56,8 @@ export class VoiceRecorderService {
     }
 
     /** Starts a recording session. */
-    public startRecording(options?: RecordingOptions): Promise<GenericResponse> {
-        return this.execute(() => this.platform.startRecording(options));
+    public startRecording(options?: RecordingOptions, onVolumeChanged?: (volume: number) => void): Promise<GenericResponse> {
+        return this.execute(() => this.platform.startRecording(options, onVolumeChanged));
     }
 
     /** Stops the recording session and formats the payload if needed. */

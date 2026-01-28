@@ -41,6 +41,7 @@ final class CustomMediaRecorderTests: XCTestCase {
         var recordCallCount = 0
         var stopCallCount = 0
         var pauseCallCount = 0
+        public var isMeteringEnabled = false
 
         func record() -> Bool {
             recordCallCount += 1
@@ -54,6 +55,12 @@ final class CustomMediaRecorderTests: XCTestCase {
         func pause() {
             pauseCallCount += 1
         }
+
+        func updateMeters() {}
+
+        func averagePower(forChannel channelNumber: Int) -> Float {
+			return 0.0
+		}
     }
 
     private final class AudioRecorderFactorySpy {
@@ -99,7 +106,7 @@ final class CustomMediaRecorderTests: XCTestCase {
             audioSessionProvider: { session },
             audioRecorderFactory: factory.makeRecorder
         )
-        let options = RecordOptions(directory: "CACHE", subDirectory: "voice-tests/")
+        let options = RecordOptions(directory: "CACHE", subDirectory: "voice-tests/", volumeMetering: false)
 
         XCTAssertTrue(recorder.startRecording(recordOptions: options))
         XCTAssertEqual(recorder.getCurrentStatus(), .RECORDING)
@@ -125,7 +132,7 @@ final class CustomMediaRecorderTests: XCTestCase {
             audioRecorderFactory: factory.makeRecorder
         )
 
-        XCTAssertFalse(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil)))
+        XCTAssertFalse(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false)))
         XCTAssertEqual(recorder.getCurrentStatus(), .NONE)
     }
 
@@ -146,7 +153,7 @@ final class CustomMediaRecorderTests: XCTestCase {
             audioRecorderFactory: factory.makeRecorder
         )
 
-        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil)))
+        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false)))
         XCTAssertTrue(recorder.pauseRecording())
 
         XCTAssertEqual(factory.createdRecorders.first?.pauseCallCount, 1)
@@ -161,7 +168,7 @@ final class CustomMediaRecorderTests: XCTestCase {
             audioRecorderFactory: factory.makeRecorder
         )
 
-        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil)))
+        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false)))
         XCTAssertTrue(recorder.pauseRecording())
         XCTAssertTrue(recorder.resumeRecording())
 
@@ -193,7 +200,7 @@ final class CustomMediaRecorderTests: XCTestCase {
             expectation.fulfill()
         }
 
-        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil)))
+        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false)))
         postInterruption(type: .began, session: session)
 
         wait(for: [expectation], timeout: 1.0)
@@ -218,7 +225,7 @@ final class CustomMediaRecorderTests: XCTestCase {
             endedExpectation.fulfill()
         }
 
-        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil)))
+        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false)))
         postInterruption(type: .began, session: session)
         wait(for: [beganExpectation], timeout: 1.0)
 
@@ -241,7 +248,7 @@ final class CustomMediaRecorderTests: XCTestCase {
             interruptionExpectation.fulfill()
         }
 
-        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil)))
+        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false)))
         postInterruption(type: .began, session: session)
         wait(for: [interruptionExpectation], timeout: 1.0)
 
@@ -265,7 +272,7 @@ final class CustomMediaRecorderTests: XCTestCase {
         )
         let expectation = expectation(description: "stop completion")
 
-        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil)))
+        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false)))
 
         recorder.stopRecording { success in
             XCTAssertTrue(success)

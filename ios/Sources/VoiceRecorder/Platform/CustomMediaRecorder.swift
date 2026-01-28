@@ -12,6 +12,10 @@ protocol AudioRecorderProtocol: AnyObject {
     func record() -> Bool
     func stop()
     func pause()
+
+    var isMeteringEnabled: Bool { get set }
+    func updateMeters()
+    func averagePower(forChannel channelNumber: Int) -> Float
 }
 
 typealias AudioRecorderFactory = (_ url: URL, _ settings: [String: Any]) throws -> AudioRecorderProtocol
@@ -21,6 +25,9 @@ extension AVAudioRecorder: AudioRecorderProtocol {}
 
 /// AVAudioRecorder wrapper that supports interruptions and segment merging.
 class CustomMediaRecorder: RecorderAdapter {
+
+    private var levelTimer: Timer?
+    private var lowPassVolume: Float = 0.0
 
     private let audioSessionProvider: () -> AudioSessionProtocol
     private let audioRecorderFactory: AudioRecorderFactory
@@ -45,6 +52,8 @@ class CustomMediaRecorder: RecorderAdapter {
     var onInterruptionBegan: (() -> Void)?
     /// Callback invoked when interruptions end.
     var onInterruptionEnded: (() -> Void)?
+    /// Callback for receiving volume updates.
+    var onVolumeChanged: ((Float) -> Void)?
 
     /// Recorder settings used for all segments.
     private let settings: [String: Any] = [
@@ -87,6 +96,58 @@ class CustomMediaRecorder: RecorderAdapter {
         return URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
     }
 
+    private func calculateVisualLevel(from rawLinear: Float) -> Float {
+        let threshold: Float = 0.15
+        let kneePoint: Float = 0.8
+
+        if rawLinear <= threshold {
+            return sqrt(rawLinear / threshold) * kneePoint
+        } else {
+            let excess = (rawLinear - threshold) / (1.0 - threshold)
+            return kneePoint + (excess * (1.0 - kneePoint))
+        }
+    }
+
+    private func startVolumeMetering() {
+        stopVolumeMetering()
+
+        guard options?.volumeMetering == true else {
+            return
+        }
+
+        self.lowPassVolume = 0.0
+
+        let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
+            guard let self = self, let recorder = self.audioRecorder else {
+                self?.stopVolumeMetering()
+                return
+            }
+
+            recorder.updateMeters()
+            let averagePower = recorder.averagePower(forChannel: 0)
+
+            // Convert dB (-160 to 0) to linear (0.0 to 1.0)
+            let rawLinearLevel = pow(10, averagePower / 20)
+
+            let visualLevel = self.calculateVisualLevel(from: rawLinearLevel)
+
+            // Apply a Low-Pass Filter for smoothness
+            self.lowPassVolume = (0.5 * visualLevel) + (0.5 * self.lowPassVolume)
+
+            DispatchQueue.main.async {
+                self.onVolumeChanged?(self.lowPassVolume)
+            }
+        }
+
+        RunLoop.main.add(timer, forMode: .common)
+        self.levelTimer = timer
+    }
+
+    private func stopVolumeMetering() {
+        levelTimer?.invalidate()
+        levelTimer = nil
+    }
+
     /// Starts recording audio and prepares the session.
     public func startRecording(recordOptions: RecordOptions?) -> Bool {
         do {
@@ -98,8 +159,10 @@ class CustomMediaRecorder: RecorderAdapter {
             baseAudioFilePath = getDirectoryToSaveAudioFile().appendingPathComponent("recording-\(Int(Date().timeIntervalSince1970 * 1000)).aac")
             audioFileSegments = [baseAudioFilePath]
             audioRecorder = try audioRecorderFactory(baseAudioFilePath, settings)
+            audioRecorder.isMeteringEnabled = true
             setupInterruptionHandling()
             audioRecorder.record()
+            startVolumeMetering()
             status = CurrentRecordingStatus.RECORDING
             return true
         } catch {
@@ -110,6 +173,7 @@ class CustomMediaRecorder: RecorderAdapter {
     /// Stops recording and merges segments if needed.
     public func stopRecording(completion: @escaping (Bool) -> Void) {
         removeInterruptionHandling()
+        stopVolumeMetering()
         audioRecorder.stop()
 
         let finalizeStop: (Bool) -> Void = { [weak self] success in
@@ -169,6 +233,7 @@ class CustomMediaRecorder: RecorderAdapter {
     /// Pauses recording when currently active.
     public func pauseRecording() -> Bool {
         if(status == CurrentRecordingStatus.RECORDING) {
+            stopVolumeMetering()
             audioRecorder.pause()
             status = CurrentRecordingStatus.PAUSED
             return true
@@ -191,7 +256,9 @@ class CustomMediaRecorder: RecorderAdapter {
                     audioRecorder = try audioRecorderFactory(segmentPath, settings)
                     audioFileSegments.append(segmentPath)
                 }
+                audioRecorder.isMeteringEnabled = true
                 audioRecorder.record()
+                startVolumeMetering()
                 status = CurrentRecordingStatus.RECORDING
                 return true
             } catch {

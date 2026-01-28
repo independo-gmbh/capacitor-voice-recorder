@@ -40,7 +40,10 @@ export class VoiceRecorderWeb extends WebPlugin implements VoiceRecorderPlugin {
 
   /** Starts a recording session. */
   public startRecording(options?: RecordingOptions): Promise<GenericResponse> {
-    return this.service.startRecording(options);
+    return this.service.startRecording(
+      options,
+      volume => this.notifyListeners('volumeChanged', { volume }),
+    );
   }
 
   /** Stops the current recording session and returns the payload. */

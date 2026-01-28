@@ -14,9 +14,52 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.function.Consumer;
 
 /** MediaRecorder wrapper that manages audio focus and interruptions. */
 public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListener, RecorderAdapter {
+
+    interface HandlerProvider {
+        void setupHandler();
+        void post(Runnable runnable);
+        void postDelayed(Runnable runnable, long delayMillis);
+        void removeCallbacks(Runnable runnable);
+    }
+
+    private static final class DefaultHandlerProvider implements HandlerProvider {
+        private Handler handler;
+
+        @Override
+        public void setupHandler() {
+            // This is only called when startVolumeMetering() runs
+            if (handler == null) {
+                handler = new Handler(Looper.getMainLooper());
+            }
+        }
+
+        @Override
+        public void post(Runnable r) {
+            if (handler != null) {
+                handler.post(r);
+            }
+        }
+
+        @Override
+        public void postDelayed(Runnable r, long d) {
+            if (handler != null) {
+                handler.postDelayed(r, d);
+            }
+        }
+
+        @Override
+        public void removeCallbacks(Runnable r) {
+            if (handler != null) {
+                handler.removeCallbacks(r);
+            }
+        }
+    }
 
     interface MediaRecorderFactory {
         MediaRecorder create();
@@ -115,6 +158,8 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     private final RecordOptions options;
     /** Factory for MediaRecorder instances. */
     private final MediaRecorderFactory mediaRecorderFactory;
+    /** Provider for Handler. */
+    private final HandlerProvider handlerProvider;
     /** Directory provider for file output. */
     private final DirectoryProvider directoryProvider;
     /** SDK version provider for API gating. */
@@ -135,6 +180,12 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     private Runnable onInterruptionBegan;
     /** Callback invoked when an interruption ends. */
     private Runnable onInterruptionEnded;
+    /** Callback invoked with volume changes. */
+    private Consumer<Float> onVolumeChanged;
+
+    private Runnable volumeRunnable;
+    private float lowPassVolume = 0.0f;
+    private static final int POLL_INTERVAL_MS = 50;
 
     public CustomMediaRecorder(Context context, RecordOptions options) throws IOException {
         this(
@@ -144,7 +195,8 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
             new DefaultAudioManagerProvider(),
             new DefaultDirectoryProvider(),
             new DefaultSdkIntProvider(),
-            new DefaultAudioFocusRequestFactory()
+            new DefaultAudioFocusRequestFactory(),
+            new DefaultHandlerProvider()
         );
     }
 
@@ -155,7 +207,8 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         AudioManagerProvider audioManagerProvider,
         DirectoryProvider directoryProvider,
         SdkIntProvider sdkIntProvider,
-        AudioFocusRequestFactory audioFocusRequestFactory
+        AudioFocusRequestFactory audioFocusRequestFactory,
+        HandlerProvider handlerProvider
     ) throws IOException {
         this.context = context;
         this.options = options;
@@ -163,6 +216,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         this.directoryProvider = directoryProvider;
         this.sdkIntProvider = sdkIntProvider;
         this.audioFocusRequestFactory = audioFocusRequestFactory;
+        this.handlerProvider = handlerProvider;
         this.audioManager = audioManagerProvider.getAudioManager(context);
         generateMediaRecorder();
     }
@@ -177,14 +231,45 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         this.onInterruptionEnded = callback;
     }
 
+    /** Sets the callback for real-time volume updates. */
+    public void setOnVolumeChanged(Consumer<Float> callback) {
+        this.onVolumeChanged = callback;
+    }
+
+    public boolean isUnprocessedSourceSupported() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            if (audioManager != null) {
+                String support = audioManager.getProperty(AudioManager.PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED);
+                return "true".equals(support);
+            }
+        }
+        return false;
+    }
+
     /** Configures the MediaRecorder with audio settings. */
     private void generateMediaRecorder() throws IOException {
         mediaRecorder = mediaRecorderFactory.create();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setAudioEncodingBitRate(96000);
-        mediaRecorder.setAudioSamplingRate(44100);
+
+        if (true) {
+            if (isUnprocessedSourceSupported()) {
+                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.UNPROCESSED);
+            } else {
+                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
+            }
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mediaRecorder.setAudioEncodingBitRate(128000);
+            mediaRecorder.setAudioSamplingRate(44100);
+            mediaRecorder.setAudioChannels(1); // added, because we're recording a voice
+        } else {
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mediaRecorder.setAudioEncodingBitRate(96000);
+            mediaRecorder.setAudioSamplingRate(44100);
+        }
+
         setRecorderOutputFile();
         mediaRecorder.prepare();
     }
@@ -231,15 +316,69 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         };
     }
 
+    private void startVolumeMetering() {
+        if (!options.volumeMetering()) {
+            return;
+        }
+
+        handlerProvider.setupHandler();
+
+        lowPassVolume = 0.0f;
+
+        volumeRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (mediaRecorder != null && currentRecordingStatus == CurrentRecordingStatus.RECORDING) {
+                    int maxAmplitude = mediaRecorder.getMaxAmplitude();
+                    float rawLinear = (float) maxAmplitude / 32767f;
+
+                    // Consistency check: Same "Knee" logic used in Swift
+                    float targetLevel = calculateVisualLevel(rawLinear);
+
+                    // Low-pass filter for smoothing
+                    lowPassVolume = (0.5f * targetLevel) + (0.5f * lowPassVolume);
+
+                    if (onVolumeChanged != null) {
+                        onVolumeChanged.accept(lowPassVolume);
+                    }
+                    handlerProvider.postDelayed(this, POLL_INTERVAL_MS);
+                }
+            }
+        };
+        handlerProvider.post(volumeRunnable);
+    }
+
+    private void stopVolumeMetering() {
+        if (volumeRunnable != null) {
+            handlerProvider.removeCallbacks(volumeRunnable);
+            volumeRunnable = null;
+        }
+    }
+
+    private float calculateVisualLevel(float rawLinear) {
+        float threshold = 0.15f;
+        float kneePoint = 0.8f;
+
+        if (rawLinear <= threshold) {
+            return (float) Math.sqrt(rawLinear / threshold) * kneePoint;
+        } else {
+            float excess = (rawLinear - threshold) / (1.0f - threshold);
+            return kneePoint + (excess * (1.0f - kneePoint));
+        }
+    }
+
     /** Starts recording and requests audio focus. */
     public void startRecording() {
         requestAudioFocus();
         mediaRecorder.start();
+        startVolumeMetering();
         currentRecordingStatus = CurrentRecordingStatus.RECORDING;
     }
 
     /** Stops recording and releases audio resources. */
     public void stopRecording() {
+        stopVolumeMetering();
+
         if (mediaRecorder == null) {
             abandonAudioFocus();
             currentRecordingStatus = CurrentRecordingStatus.NONE;
@@ -279,6 +418,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
 
         if (currentRecordingStatus == CurrentRecordingStatus.RECORDING) {
             mediaRecorder.pause();
+            stopVolumeMetering();
             currentRecordingStatus = CurrentRecordingStatus.PAUSED;
             return true;
         } else {
@@ -295,6 +435,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         if (currentRecordingStatus == CurrentRecordingStatus.PAUSED || currentRecordingStatus == CurrentRecordingStatus.INTERRUPTED) {
             requestAudioFocus();
             mediaRecorder.resume();
+            startVolumeMetering();
             currentRecordingStatus = CurrentRecordingStatus.RECORDING;
             return true;
         } else {
@@ -321,7 +462,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     private static boolean canPhoneCreateMediaRecorderWhileHavingPermission(Context context) {
         CustomMediaRecorder tempMediaRecorder = null;
         try {
-            tempMediaRecorder = new CustomMediaRecorder(context, new RecordOptions(null, null));
+            tempMediaRecorder = new CustomMediaRecorder(context, new RecordOptions(null, null, false));
             tempMediaRecorder.startRecording();
             tempMediaRecorder.stopRecording();
             return true;
@@ -372,6 +513,7 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
                     try {
                         if (sdkIntProvider.getSdkInt() >= Build.VERSION_CODES.N) {
                             mediaRecorder.pause();
+                            stopVolumeMetering();
                             currentRecordingStatus = CurrentRecordingStatus.INTERRUPTED;
                             if (onInterruptionBegan != null) {
                                 onInterruptionBegan.run();

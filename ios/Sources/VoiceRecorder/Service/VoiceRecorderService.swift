@@ -35,7 +35,8 @@ final class VoiceRecorderService {
     func startRecording(
         options: RecordOptions?,
         onInterruptionBegan: @escaping () -> Void,
-        onInterruptionEnded: @escaping () -> Void
+        onInterruptionEnded: @escaping () -> Void,
+        onVolumeChanged: @escaping (Float) -> Void
     ) throws {
         if !platform.canDeviceVoiceRecord() {
             throw VoiceRecorderServiceError(code: ErrorCodes.deviceCannotVoiceRecord)
@@ -52,6 +53,7 @@ final class VoiceRecorderService {
         let nextRecorder = recorderFactory()
         nextRecorder.onInterruptionBegan = onInterruptionBegan
         nextRecorder.onInterruptionEnded = onInterruptionEnded
+        nextRecorder.onVolumeChanged = onVolumeChanged
         let started = nextRecorder.startRecording(recordOptions: options)
         if !started {
             recorder = nil

@@ -7,6 +7,7 @@ import app.independo.capacitorvoicerecorder.core.CurrentRecordingStatus;
 import app.independo.capacitorvoicerecorder.core.RecordOptions;
 import app.independo.capacitorvoicerecorder.platform.NotSupportedOsVersion;
 import java.io.File;
+import java.util.function.Consumer;
 
 final class VoiceRecorderServiceFixtures {
 
@@ -82,6 +83,7 @@ final class VoiceRecorderServiceFixtures {
         boolean startThrows = false;
         Runnable onInterruptionBegan;
         Runnable onInterruptionEnded;
+        java.util.function.Consumer<Float> onVolumeChanged;
 
         @Override
         public void setOnInterruptionBegan(Runnable callback) {
@@ -91,6 +93,11 @@ final class VoiceRecorderServiceFixtures {
         @Override
         public void setOnInterruptionEnded(Runnable callback) {
             onInterruptionEnded = callback;
+        }
+
+        @Override
+        public void setOnVolumeChanged(java.util.function.Consumer<Float> callback) {
+            onVolumeChanged = callback;
         }
 
         @Override

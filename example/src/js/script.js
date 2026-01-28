@@ -8,6 +8,7 @@ const elements = {
     capabilityStatus: document.querySelector('#record-capability-status'),
     permissionStatus: document.querySelector('#permission-status'),
     recordingStatus: document.querySelector('#recording-status'),
+    recordingVolume: document.querySelector('#recording-volume'),
     duration: document.querySelector('#recording-duration'),
     mimeType: document.querySelector('#recording-mime-type'),
     base64Length: document.querySelector('#recording-base64-length'),
@@ -18,6 +19,7 @@ const elements = {
     checkPermission: document.querySelector('#check-permission'),
     requestPermission: document.querySelector('#request-permission'),
     startRecording: document.querySelector('#start-recording'),
+    startRecordingNoMetering: document.querySelector('#start-recording-no-metering'),
     pauseRecording: document.querySelector('#pause-recording'),
     resumeRecording: document.querySelector('#resume-recording'),
     stopRecording: document.querySelector('#stop-recording'),
@@ -140,10 +142,12 @@ async function handleRequestPermission() {
     await refreshPermission();
 }
 
-async function handleStart() {
+async function handleStart(volumeMetering) {
     clearError();
     try {
-        const result = await VoiceRecorder.startRecording();
+        const result = await VoiceRecorder.startRecording({
+          volumeMetering,
+        });
         if (!result.value) {
             setError('Start returned false.');
         }
@@ -199,11 +203,16 @@ function handleClear() {
 elements.checkCapability?.addEventListener('click', () => refreshCapability());
 elements.checkPermission?.addEventListener('click', () => refreshPermission());
 elements.requestPermission?.addEventListener('click', () => handleRequestPermission());
-elements.startRecording?.addEventListener('click', () => handleStart());
+elements.startRecording?.addEventListener('click', () => handleStart(true));
+elements.startRecordingNoMetering?.addEventListener('click', () => handleStart(false));
 elements.pauseRecording?.addEventListener('click', () => handlePause());
 elements.resumeRecording?.addEventListener('click', () => handleResume());
 elements.stopRecording?.addEventListener('click', () => handleStop());
 elements.clearRecording?.addEventListener('click', () => handleClear());
+
+VoiceRecorder.addListener('volumeChanged', e => {
+  setText(elements.recordingVolume, e.volume);
+});
 
 clearError();
 updateRecordingDetails();

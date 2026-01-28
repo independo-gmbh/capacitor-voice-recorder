@@ -7,5 +7,7 @@ struct RecordOptions {
     public let directory: String?
     /// Subdirectory name provided by the caller.
     public let subDirectory: String?
+    /// Whether to meter the volume.
+    public let volumeMetering: Bool
 
 }

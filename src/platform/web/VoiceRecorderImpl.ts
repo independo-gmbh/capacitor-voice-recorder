@@ -39,6 +39,8 @@ const neverResolvingPromise = (): Promise<any> => new Promise(() => undefined);
 export class VoiceRecorderImpl {
     /** Active MediaRecorder instance, if recording. */
     private mediaRecorder: MediaRecorder | null = null;
+    /** Active VolumeMeter instance, if recording & configured to meter the volume. */
+    private volumeMeter: VolumeMeter | null = null;
     /** Collected data chunks from MediaRecorder. */
     private chunks: any[] = [];
     /** Promise resolved when the recorder stops and payload is ready. */
@@ -54,7 +56,7 @@ export class VoiceRecorderImpl {
     }
 
     /** Starts a recording session using MediaRecorder. */
-    public async startRecording(options?: RecordingOptions): Promise<GenericResponse> {
+    public async startRecording(options?: RecordingOptions, onVolumeChanged?: (volume: number) => void): Promise<GenericResponse> {
         if (this.mediaRecorder != null) {
             throw alreadyRecordingError();
         }
@@ -69,7 +71,7 @@ export class VoiceRecorderImpl {
 
         return navigator.mediaDevices
             .getUserMedia({audio: true})
-            .then((stream) => this.onSuccessfullyStartedRecording(stream, options))
+            .then((stream) => this.onSuccessfullyStartedRecording(stream, options, onVolumeChanged))
             .catch(this.onFailedToStartRecording.bind(this));
     }
 
@@ -172,7 +174,7 @@ export class VoiceRecorderImpl {
     }
 
     /** Initializes MediaRecorder and wires up handlers. */
-    private onSuccessfullyStartedRecording(stream: MediaStream, options?: RecordingOptions): GenericResponse {
+    private onSuccessfullyStartedRecording(stream: MediaStream, options?: RecordingOptions, onVolumeChanged?: (volume: number) => void): GenericResponse {
         this.pendingResult = new Promise((resolve, reject) => {
             this.mediaRecorder = new MediaRecorder(stream);
             this.mediaRecorder.onerror = () => {
@@ -218,6 +220,11 @@ export class VoiceRecorderImpl {
             };
             this.mediaRecorder.ondataavailable = (event: any) => this.chunks.push(event.data);
             this.mediaRecorder.start();
+
+            if (options?.volumeMetering && onVolumeChanged) {
+                this.volumeMeter = new VolumeMeter(stream, onVolumeChanged);
+                this.volumeMeter.start();
+            }
         });
         return successResponse();
     }
@@ -252,7 +259,84 @@ export class VoiceRecorderImpl {
             }
         }
         this.pendingResult = neverResolvingPromise();
+        this.volumeMeter?.stop();
+        this.volumeMeter = null;
         this.mediaRecorder = null;
         this.chunks = [];
+    }
+}
+
+export class VolumeMeter {
+    private audioContext: AudioContext | null = null;
+    private analyser: AnalyserNode | null = null;
+    private animationId: number | null = null;
+    private lowPassVolume = 0;
+
+    constructor(
+        private stream: MediaStream,
+        private onVolumeChanged: (volume: number) => void
+    ) {}
+
+    public start(): void {
+        this.audioContext = new AudioContext();
+        const source = this.audioContext.createMediaStreamSource(this.stream);
+        this.analyser = this.audioContext.createAnalyser();
+        this.analyser.fftSize = 256;
+        source.connect(this.analyser);
+
+        const bufferLength = this.analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const update = () => {
+            if (!this.analyser) return;
+            this.analyser.getByteFrequencyData(dataArray);
+
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                sum += dataArray[i];
+            }
+
+            const average = sum / bufferLength;
+            const rawLinear = average / 255;
+
+            // Apply the shared "Knee" logic
+            const targetLevel = this.calculateVisualLevel(rawLinear);
+
+            // Apply smoothing (Low-Pass Filter)
+            this.lowPassVolume = (0.5 * targetLevel) + (0.5 * this.lowPassVolume);
+
+            this.onVolumeChanged(this.lowPassVolume);
+            this.animationId = requestAnimationFrame(update);
+        };
+
+        update();
+    }
+
+    public async stop(): Promise<void> {
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        if (this.audioContext) {
+            try {
+                await this.audioContext.close();
+            } catch (error) {
+                console.error('Failed to close AudioContext in VolumeMeter.stop:', error);
+            }
+        }
+        this.audioContext = null;
+        this.analyser = null;
+    }
+
+    private calculateVisualLevel(rawLinear: number): number {
+        const threshold = 0.15;
+        const kneePoint = 0.8;
+
+        if (rawLinear <= threshold) {
+            return Math.sqrt(rawLinear / threshold) * kneePoint;
+        } else {
+            const excess = (rawLinear - threshold) / (1.0 - threshold);
+            return kneePoint + (excess * (1.0 - kneePoint));
+        }
     }
 }

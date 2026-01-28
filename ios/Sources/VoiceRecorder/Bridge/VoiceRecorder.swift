@@ -99,7 +99,8 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
 
         let directory: String? = call.getString("directory")
         let subDirectory: String? = call.getString("subDirectory")
-        let recordOptions = RecordOptions(directory: directory, subDirectory: subDirectory)
+        let volumeMetering: Bool = call.getBool("volumeMetering") ?? false
+        let recordOptions = RecordOptions(directory: directory, subDirectory: subDirectory, volumeMetering: volumeMetering)
         do {
             try service.startRecording(
                 options: recordOptions,
@@ -108,6 +109,10 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
                 },
                 onInterruptionEnded: { [weak self] in
                     self?.notifyListeners("voiceRecordingInterruptionEnded", data: [:])
+                },
+                onVolumeChanged: { [weak self] volume in
+                    // volume is a Float between 0.0 and 1.0
+                    self?.notifyListeners("volumeChanged", data: ["volume": volume])
                 }
             )
             call.resolve(ResponseGenerator.successResponse())

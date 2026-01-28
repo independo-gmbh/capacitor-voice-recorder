@@ -72,7 +72,7 @@ public class DefaultRecorderPlatformTest {
         Context context = mock(Context.class);
         RecorderAdapter recorder = mock(RecorderAdapter.class);
         DefaultRecorderPlatform.RecorderFactory recorderFactory = mock(DefaultRecorderPlatform.RecorderFactory.class);
-        when(recorderFactory.create(context, new RecordOptions(null, null))).thenReturn(recorder);
+        when(recorderFactory.create(context, new RecordOptions(null, null, false))).thenReturn(recorder);
         DefaultRecorderPlatform platform = createPlatform(
             context,
             recorderFactory,
@@ -81,10 +81,10 @@ public class DefaultRecorderPlatformTest {
             data -> java.util.Base64.getEncoder().encodeToString(data)
         );
 
-        RecorderAdapter result = platform.createRecorder(new RecordOptions(null, null));
+        RecorderAdapter result = platform.createRecorder(new RecordOptions(null, null, false));
 
         assertEquals(recorder, result);
-        verify(recorderFactory).create(context, new RecordOptions(null, null));
+        verify(recorderFactory).create(context, new RecordOptions(null, null, false));
     }
 
     @Test
