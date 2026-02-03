@@ -204,10 +204,10 @@ jobs:
           node-version: 24
           cache: 'npm'
           cache-dependency-path: package-lock.json
+      - run: npm i -g npm@^11.5.1
       - run: npm ci
       - run: npm run prepublishOnly
       - name: 'Semantic Release'
         run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
