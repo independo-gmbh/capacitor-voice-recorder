@@ -18,6 +18,8 @@ jobs:
     name: "Linting"
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           run_install: false
