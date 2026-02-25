@@ -82,9 +82,26 @@ const setNavigatorPermissions = (value: any) => {
 
 describe('VoiceRecorderImpl.getSupportedMimeType', () => {
     const originalMediaRecorder = (global as any).MediaRecorder;
+    let createElementSpy: jest.SpyInstance;
+    let originalCreateElement: typeof document.createElement;
+
+    beforeEach(() => {
+        originalCreateElement = document.createElement.bind(document);
+        createElementSpy = jest.spyOn(document, 'createElement');
+        createElementSpy.mockImplementation(((tagName: string) => {
+            if (tagName === 'audio') {
+                return {
+                    canPlayType: jest.fn().mockReturnValue(''),
+                } as any;
+            }
+            return originalCreateElement(tagName);
+        }) as any);
+    });
 
     afterEach(() => {
         (global as any).MediaRecorder = originalMediaRecorder;
+        createElementSpy.mockRestore();
+        jest.restoreAllMocks();
     });
 
     it('returns null when MediaRecorder is undefined', () => {
@@ -92,10 +109,95 @@ describe('VoiceRecorderImpl.getSupportedMimeType', () => {
         expect(VoiceRecorderImpl.getSupportedMimeType()).toBeNull();
     });
 
-    it('returns first supported mime type', () => {
+    it('returns first supported mime type when both recording and playback support exist', () => {
         (global as any).MediaRecorder = {
-            isTypeSupported: jest.fn().mockReturnValue(true),
+            isTypeSupported: jest.fn((type: string) => type === 'audio/mp4'),
         } as any;
+        createElementSpy.mockImplementation(((tagName: string) => {
+            if (tagName === 'audio') {
+                return {
+                    canPlayType: jest.fn((type: string) => (type === 'audio/mp4' ? 'probably' : '')),
+                } as any;
+            }
+            return originalCreateElement(tagName);
+        }) as any);
+
+        expect(VoiceRecorderImpl.getSupportedMimeType()).toBe('audio/mp4');
+    });
+
+    it('skips recording-supported mime types that are not playable when playback support is required', () => {
+        (global as any).MediaRecorder = {
+            isTypeSupported: jest.fn((type: string) =>
+                ['audio/aac', 'audio/webm;codecs=opus'].includes(type),
+            ),
+        } as any;
+        createElementSpy.mockImplementation(((tagName: string) => {
+            if (tagName === 'audio') {
+                return {
+                    canPlayType: jest.fn((type: string) => {
+                        if (type === 'audio/aac') return 'maybe';
+                        if (type === 'audio/webm;codecs=opus') return '';
+                        return '';
+                    }),
+                } as any;
+            }
+            return originalCreateElement(tagName);
+        }) as any);
+
+        expect(VoiceRecorderImpl.getSupportedMimeType()).toBe('audio/aac');
+    });
+
+    it('prefers the first probably over an earlier maybe without changing global ordering inside each class', () => {
+        (global as any).MediaRecorder = {
+            isTypeSupported: jest.fn((type: string) =>
+                ['audio/mp4', 'audio/aac'].includes(type),
+            ),
+        } as any;
+        createElementSpy.mockImplementation(((tagName: string) => {
+            if (tagName === 'audio') {
+                return {
+                    canPlayType: jest.fn((type: string) => {
+                        if (type === 'audio/mp4') return 'maybe';
+                        if (type === 'audio/aac') return 'probably';
+                        return '';
+                    }),
+                } as any;
+            }
+            return originalCreateElement(tagName);
+        }) as any);
+
+        expect(VoiceRecorderImpl.getSupportedMimeType()).toBe('audio/aac');
+    });
+
+    it('returns first recording-supported mime type when playback support is not required', () => {
+        (global as any).MediaRecorder = {
+            isTypeSupported: jest.fn((type: string) =>
+                ['audio/mp4', 'audio/aac', 'audio/webm;codecs=opus'].includes(type),
+            ),
+        } as any;
+        createElementSpy.mockImplementation(((tagName: string) => {
+            if (tagName === 'audio') {
+                return {
+                    canPlayType: jest.fn().mockReturnValue(''),
+                } as any;
+            }
+            return originalCreateElement(tagName);
+        }) as any);
+
+        expect(VoiceRecorderImpl.getSupportedMimeType({ requirePlaybackSupport: false })).toBe('audio/mp4');
+    });
+
+    it('falls back to record-only probing when audio playback probing is unavailable', () => {
+        (global as any).MediaRecorder = {
+            isTypeSupported: jest.fn((type: string) => type === 'audio/aac'),
+        } as any;
+        createElementSpy.mockImplementation(((tagName: string) => {
+            if (tagName === 'audio') {
+                return {} as any;
+            }
+            return originalCreateElement(tagName);
+        }) as any);
+
         expect(VoiceRecorderImpl.getSupportedMimeType()).toBe('audio/aac');
     });
 });
@@ -167,6 +269,31 @@ describe('VoiceRecorderImpl permissions', () => {
         expect(result).toEqual({ value: true });
         hasPermissionSpy.mockRestore();
     });
+
+    it('canDeviceVoiceRecord honors requirePlaybackSupport=false on web', async () => {
+        const originalMediaRecorder = (global as any).MediaRecorder;
+        const createElementSpy = jest.spyOn(document, 'createElement');
+        const originalCreateElement = document.createElement.bind(document);
+
+        (global as any).MediaRecorder = {
+            isTypeSupported: jest.fn((type: string) => type === 'audio/webm;codecs=opus'),
+        } as any;
+        setNavigatorMediaDevices({ getUserMedia: jest.fn().mockResolvedValue({}) });
+        createElementSpy.mockImplementation(((tagName: string) => {
+            if (tagName === 'audio') {
+                return { canPlayType: jest.fn().mockReturnValue('') } as any;
+            }
+            return originalCreateElement(tagName);
+        }) as any);
+
+        await expect(VoiceRecorderImpl.canDeviceVoiceRecord()).resolves.toEqual({ value: false });
+        await expect(
+            VoiceRecorderImpl.canDeviceVoiceRecord({ requirePlaybackSupport: false }),
+        ).resolves.toEqual({ value: true });
+
+        createElementSpy.mockRestore();
+        (global as any).MediaRecorder = originalMediaRecorder;
+    });
 });
 
 describe('VoiceRecorderImpl recording flow', () => {
@@ -174,12 +301,19 @@ describe('VoiceRecorderImpl recording flow', () => {
     const originalFileReader = (global as any).FileReader;
     const originalMediaDevices = (navigator as any).mediaDevices;
     const originalPermissions = (navigator as any).permissions;
+    let canPlayTypeSpy: jest.SpyInstance | undefined;
 
     beforeEach(() => {
         (global as any).MediaRecorder = MockMediaRecorder as any;
         (global as any).FileReader = MockFileReader;
         setNavigatorPermissions({ query: jest.fn().mockResolvedValue({ state: 'granted' }) });
         setNavigatorMediaDevices({ getUserMedia: jest.fn().mockResolvedValue(createMockStream()) });
+        if (
+            typeof HTMLMediaElement !== 'undefined' &&
+            typeof HTMLMediaElement.prototype.canPlayType === 'function'
+        ) {
+            canPlayTypeSpy = jest.spyOn(HTMLMediaElement.prototype, 'canPlayType').mockReturnValue('probably');
+        }
     });
 
     afterEach(() => {
@@ -187,6 +321,8 @@ describe('VoiceRecorderImpl recording flow', () => {
         (global as any).FileReader = originalFileReader;
         setNavigatorMediaDevices(originalMediaDevices);
         setNavigatorPermissions(originalPermissions);
+        canPlayTypeSpy?.mockRestore();
+        canPlayTypeSpy = undefined;
         jest.restoreAllMocks();
     });
 
