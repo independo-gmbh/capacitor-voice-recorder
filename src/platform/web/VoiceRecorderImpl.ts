@@ -81,8 +81,6 @@ export class VoiceRecorderImpl {
     private static readonly DEFAULT_REQUIRE_PLAYBACK_SUPPORT = true;
     /** Active MediaRecorder instance, if recording. */
     private mediaRecorder: MediaRecorder | null = null;
-    /** MIME type selected at start time for the active recording. */
-    private activeMimeType: keyof typeof POSSIBLE_MIME_TYPES | null = null;
     /** Collected data chunks from MediaRecorder. */
     private chunks: any[] = [];
     /** Promise resolved when the recorder stops and payload is ready. */
@@ -311,20 +309,14 @@ export class VoiceRecorderImpl {
                 return;
             }
 
-            this.activeMimeType = mimeType;
             this.mediaRecorder = new MediaRecorder(stream, {mimeType});
             this.mediaRecorder.onerror = () => {
                 this.prepareInstanceForNextOperation();
                 reject(failedToRecordError());
             };
             this.mediaRecorder.onstop = async () => {
-                const finalMimeType = this.activeMimeType;
-                if (finalMimeType == null) {
-                    this.prepareInstanceForNextOperation();
-                    reject(failedToFetchRecordingError());
-                    return;
-                }
-                const blobVoiceRecording = new Blob(this.chunks, {type: finalMimeType});
+                const mt = this.mediaRecorder?.mimeType ?? mimeType;
+                const blobVoiceRecording = new Blob(this.chunks, {type: mt});
                 if (blobVoiceRecording.size <= 0) {
                     this.prepareInstanceForNextOperation();
                     reject(emptyRecordingError());
@@ -335,7 +327,7 @@ export class VoiceRecorderImpl {
                 let recordDataBase64 = '';
                 if (options?.directory) {
                     const subDirectory = options.subDirectory?.match(/^\/?(.+[^/])\/?$/)?.[1] ?? '';
-                    const path = `${subDirectory}/recording-${new Date().getTime()}${POSSIBLE_MIME_TYPES[finalMimeType]}`;
+                    const path = `${subDirectory}/recording-${new Date().getTime()}${POSSIBLE_MIME_TYPES[mt]}`;
 
                     await write_blob({
                         blob: blobVoiceRecording,
@@ -355,7 +347,7 @@ export class VoiceRecorderImpl {
                 resolve({
                     value: {
                         recordDataBase64,
-                        mimeType: finalMimeType,
+                        mimeType: mt,
                         msDuration: recordingDuration * 1000,
                         uri
                     }
@@ -398,7 +390,6 @@ export class VoiceRecorderImpl {
         }
         this.pendingResult = neverResolvingPromise();
         this.mediaRecorder = null;
-        this.activeMimeType = null;
         this.chunks = [];
     }
 }
