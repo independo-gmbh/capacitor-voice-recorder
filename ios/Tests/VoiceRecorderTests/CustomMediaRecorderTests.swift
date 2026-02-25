@@ -113,7 +113,7 @@ final class CustomMediaRecorderTests: XCTestCase {
             .urls(for: .cachesDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("voice-tests", isDirectory: true)
         XCTAssertTrue(outputFile.path.hasPrefix(expectedDirectory.path))
-        XCTAssertEqual(outputFile.pathExtension, "aac")
+        XCTAssertEqual(outputFile.pathExtension, "m4a")
     }
 
     func testStartRecordingReturnsFalseWhenRecorderFactoryThrows() {
