@@ -375,7 +375,9 @@ Event payload for voiceRecordingInterrupted event (empty - no data).
 
 Construct a type with a set of properties K of type T
 
-<code>{ [P in K]: T; }</code>
+<code>{
+ [P in K]: T;
+ }</code>
 
 
 #### VoiceRecordingInterruptionEndedEvent
@@ -413,8 +415,8 @@ an interruption begins, the recording is paused, the status becomes `INTERRUPTED
 event fires. When the interruption ends, the `voiceRecordingInterruptionEnded` event fires, and the status stays
 `INTERRUPTED` until you call `resumeRecording()` or `stopRecording()`. Web does not provide interruption handling.
 
-If interruptions occur on iOS, recordings are segmented and merged when you stop. The merged file is M4A with MIME type
-`audio/mp4`. Recordings without interruptions remain AAC with MIME type `audio/aac`.
+If interruptions occur on iOS, recordings are segmented and merged when you stop. iOS recordings are normalized to an
+M4A container with MIME type `audio/mp4` for consistent output across interrupted and non-interrupted sessions.
 
 ### Web constraints
 
@@ -423,6 +425,9 @@ If interruptions occur on iOS, recordings are segmented and merged when you stop
 - The Permissions API is not consistently supported; `hasAudioRecordingPermission()` can reject with
   `COULD_NOT_QUERY_PERMISSION_STATUS`. In that case, use `requestAudioRecordingPermission()` or `startRecording()` and
   handle errors.
+- By default, the web implementation picks a MIME type that is supported for both recording (`MediaRecorder`) and
+  playback (`<audio>`). You can disable the playback probe with `RecordingOptions.requirePlaybackSupport = false` if
+  you prefer recorder-only MIME selection.
 
 ## Recording options and storage
 
@@ -448,9 +453,9 @@ The plugin returns the recording in one of several possible formats. The actual 
 browser capabilities.
 
 - Android: `audio/aac`
-- iOS: `audio/aac` (or `audio/mp4` when interrupted recordings are merged)
-- Web: first supported type from `audio/aac`, `audio/webm;codecs=opus`, `audio/ogg;codecs=opus`, `audio/webm`,
-  `audio/mp4`
+- iOS: `audio/mp4` (M4A container)
+- Web: first supported MIME type from the plugin's ordered list, with a default preference for formats that are
+  reported as playable by the browser `<audio>` element (in addition to `MediaRecorder` support)
 
 Because not all devices and browsers support the same formats, recordings may not be playable everywhere. If you need
 consistent playback across targets, convert recordings to a single format outside this plugin. The plugin focuses on
