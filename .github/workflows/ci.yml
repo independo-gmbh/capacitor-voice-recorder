@@ -18,13 +18,16 @@ jobs:
     name: "Linting"
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - run: npm ci
-      - run: npm run lint
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
 
   test_web:
     runs-on: ubuntu-latest
@@ -34,13 +37,16 @@ jobs:
       - lint
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - run: npm ci
-      - run: npm run test:web
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:web
 
   test_android:
     runs-on: ubuntu-latest
@@ -50,11 +56,14 @@ jobs:
       - lint
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
       - name: set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -64,8 +73,8 @@ jobs:
       - uses: android-actions/setup-android@v3
       - name: Install Android SDK 36 packages
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
-      - run: npm ci
-      - run: npm run test:android
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:android
 
   test_ios:
     runs-on: macos-15
@@ -76,13 +85,16 @@ jobs:
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - run: npm ci
-      - run: npm run test:ios
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:ios
 
   build-example:
     runs-on: ubuntu-latest
@@ -94,17 +106,17 @@ jobs:
       - test_ios
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: |
-            package-lock.json
-            example/package-lock.json
-      - run: npm ci
-      - run: npm run build
-      - run: npm ci --prefix example
-      - run: npm run build --prefix example
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm -C example run build
 
   verify-ios:
     runs-on: macos-15
@@ -116,13 +128,16 @@ jobs:
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - run: npm ci
-      - run: npm run verify:ios
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run verify:ios
 
   verify-android:
     runs-on: ubuntu-latest
@@ -133,11 +148,14 @@ jobs:
       - test_android
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
       - name: set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -147,8 +165,8 @@ jobs:
       - uses: android-actions/setup-android@v3
       - name: Install Android SDK 36 packages
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
-      - run: npm ci
-      - run: npm run verify:android
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run verify:android
 
   verify-web:
     runs-on: ubuntu-latest
@@ -159,13 +177,16 @@ jobs:
       - test_web
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - run: npm ci
-      - run: npm run verify:web
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run verify:web
 
   build:
     runs-on: ubuntu-latest
@@ -178,13 +199,16 @@ jobs:
       - build-example
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - run: npm ci
-      - run: npm run build
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
 
   publish:
     runs-on: ubuntu-latest
@@ -199,14 +223,18 @@ jobs:
       - build
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      # semantic-release publishes to npm; keep npm current for OIDC provenance support
       - run: npm i -g npm@^11.5.1
-      - run: npm ci
-      - run: npm run prepublishOnly
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run prepublishOnly
       - name: 'Semantic Release'
         run: npx semantic-release
         env:

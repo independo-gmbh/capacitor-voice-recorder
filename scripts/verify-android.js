@@ -90,9 +90,9 @@ function run() {
             // eslint-disable-next-line no-console
             console.error(`Detected Java ${java.major}. The current Gradle version does not support Java 25+ (\"Unsupported class file major version 69\").`);
             // eslint-disable-next-line no-console
-            console.error('Use JDK 21 (recommended) or any supported version up to JDK 24 for `npm run verify:android`.\n');
+            console.error('Use JDK 21 (recommended) or any supported version up to JDK 24 for `pnpm verify:android`.\n');
             // eslint-disable-next-line no-console
-            console.error('macOS example:\n  export JAVA_HOME=$(/usr/libexec/java_home -v 21)\n  npm run verify:android');
+            console.error('macOS example:\n  export JAVA_HOME=$(/usr/libexec/java_home -v 21)\n  pnpm verify:android');
             process.exit(1);
         }
     }
