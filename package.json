@@ -13,7 +13,7 @@
     "url": "https://github.com/independo-gmbh/capacitor-voice-recorder.git"
   },
   "description": "Capacitor plugin for voice recording",
-  "version": "8.2.0-dev.1",
+  "version": "8.2.0",
   "packageManager": "pnpm@10.30.2",
   "devDependencies": {
     "@capacitor/android": "catalog:",
