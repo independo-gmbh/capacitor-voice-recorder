@@ -19,6 +19,7 @@ public class RecordDataMapperTest {
         assertEquals("BASE64", result.optString("recordDataBase64"));
         assertEquals(1200, result.optInt("msDuration"));
         assertEquals("audio/aac", result.optString("mimeType"));
+        assertEquals("aac", result.optString("fileExtension"));
         assertEquals("file:///tmp/recording.aac", result.optString("uri"));
     }
 
@@ -30,6 +31,7 @@ public class RecordDataMapperTest {
 
         assertTrue(result.has("uri"));
         assertEquals("file:///tmp/recording.aac", result.optString("uri"));
+        assertEquals("aac", result.optString("fileExtension"));
         assertFalse(result.has("recordDataBase64"));
     }
 
@@ -41,6 +43,7 @@ public class RecordDataMapperTest {
 
         assertTrue(result.has("recordDataBase64"));
         assertEquals("BASE64", result.optString("recordDataBase64"));
+        assertEquals("aac", result.optString("fileExtension"));
         assertFalse(result.has("uri"));
     }
 
@@ -51,6 +54,7 @@ public class RecordDataMapperTest {
         JSObject result = RecordDataMapper.toNormalizedJSObject(recordData);
 
         assertFalse(result.has("recordDataBase64"));
+        assertEquals("aac", result.optString("fileExtension"));
         assertFalse(result.has("uri"));
     }
 }

@@ -16,6 +16,7 @@ const createPlatform = (overrides: Partial<VoiceRecorderPlatform> = {}): VoiceRe
                     recordDataBase64: '',
                     msDuration: 1234,
                     mimeType: 'audio/aac',
+                    fileExtension: 'aac',
                     uri: 'file:///tmp/recording.aac',
                 },
             }),
@@ -55,6 +56,7 @@ describe('VoiceRecorderService', () => {
                     recordDataBase64: '',
                     msDuration: 42,
                     mimeType: 'audio/aac',
+                    fileExtension: 'aac',
                     uri: 'file:///tmp/recording.aac',
                 },
             }),
@@ -66,6 +68,7 @@ describe('VoiceRecorderService', () => {
         expect(result.value).toEqual({
             msDuration: 42,
             mimeType: 'audio/aac',
+            fileExtension: 'aac',
             uri: 'file:///tmp/recording.aac',
         });
     });

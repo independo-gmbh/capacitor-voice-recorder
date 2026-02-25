@@ -10,6 +10,7 @@ const elements = {
     recordingStatus: document.querySelector('#recording-status'),
     duration: document.querySelector('#recording-duration'),
     mimeType: document.querySelector('#recording-mime-type'),
+    fileExtension: document.querySelector('#recording-file-extension'),
     base64Length: document.querySelector('#recording-base64-length'),
     uri: document.querySelector('#recording-uri'),
     errorOutput: document.querySelector('#error-output'),
@@ -70,6 +71,7 @@ function updateRecordingDetails() {
     if (!recording) {
         setText(elements.duration, '—');
         setText(elements.mimeType, '—');
+        setText(elements.fileExtension, '—');
         setText(elements.base64Length, '—');
         setText(elements.uri, '—');
         if (elements.playback) {
@@ -82,9 +84,11 @@ function updateRecordingDetails() {
     const base64 = recording.recordDataBase64 ?? '';
     const uri = recording.uri ?? '';
     const mimeType = recording.mimeType ?? 'audio/webm';
+    const fileExtension = recording.fileExtension ?? '';
 
     setText(elements.duration, recording.msDuration != null ? `${recording.msDuration} ms` : '—');
     setText(elements.mimeType, mimeType || '—');
+    setText(elements.fileExtension, fileExtension || '—');
     setText(elements.base64Length, base64 ? `${base64.length} chars` : '0');
     setText(elements.uri, uri || '—');
 
@@ -183,6 +187,7 @@ async function handleStop() {
     clearError();
     try {
         const result = await VoiceRecorder.stopRecording();
+        console.log('Recording stopped:', result);
         state.lastRecording = result.value ?? null;
         updateRecordingDetails();
     } catch (error) {

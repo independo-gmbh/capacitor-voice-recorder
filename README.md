@@ -333,9 +333,9 @@ Can be used to specify options for the recording.
 
 Interface representing the data of a recording.
 
-| Prop        | Type                                                                                           | Description                                 |
-| ----------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| **`value`** | <code>{ recordDataBase64: string; msDuration: number; mimeType: string; uri?: string; }</code> | The value containing the recording details. |
+| Prop        | Type                                                                                                                  | Description                                 |
+| ----------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **`value`** | <code>{ recordDataBase64: string; msDuration: number; mimeType: string; fileExtension: string; uri?: string; }</code> | The value containing the recording details. |
 
 
 #### CurrentRecordingStatus
@@ -375,9 +375,7 @@ Event payload for voiceRecordingInterrupted event (empty - no data).
 
 Construct a type with a set of properties K of type T
 
-<code>{
- [P in K]: T;
- }</code>
+<code>{ [P in K]: T; }</code>
 
 
 #### VoiceRecordingInterruptionEndedEvent

@@ -325,6 +325,7 @@ export class VoiceRecorderImpl {
 
                 let uri: string | undefined = undefined;
                 let recordDataBase64 = '';
+                const fileExtension = (POSSIBLE_MIME_TYPES[mimeType] ?? '').replace(/^\./, '');
                 if (options?.directory) {
                     const subDirectory = options.subDirectory?.match(/^\/?(.+[^/])\/?$/)?.[1] ?? '';
                     const path = `${subDirectory}/recording-${new Date().getTime()}${POSSIBLE_MIME_TYPES[mt]}`;
@@ -348,6 +349,7 @@ export class VoiceRecorderImpl {
                     value: {
                         recordDataBase64,
                         mimeType: mt,
+                        fileExtension,
                         msDuration: recordingDuration * 1000,
                         uri
                     }

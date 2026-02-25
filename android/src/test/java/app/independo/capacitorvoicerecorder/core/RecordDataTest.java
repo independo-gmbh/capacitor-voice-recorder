@@ -17,6 +17,7 @@ public class RecordDataTest {
         assertEquals("BASE64", result.optString("recordDataBase64"));
         assertEquals(1200, result.optInt("msDuration"));
         assertEquals("audio/aac", result.optString("mimeType"));
+        assertEquals("aac", result.optString("fileExtension"));
         assertEquals("file:///tmp/recording.aac", result.optString("uri"));
     }
 

@@ -56,6 +56,10 @@ export interface RecordingData {
          * The MIME type of the recorded file.
          */
         mimeType: string;
+        /**
+         * The recorded file extension / format without a leading dot (for example: `m4a`, `aac`, `mp3`, `webm`).
+         */
+        fileExtension: string;
 
         /**
          * The URI of the recording file.

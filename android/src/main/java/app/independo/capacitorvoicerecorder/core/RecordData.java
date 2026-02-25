@@ -11,15 +11,22 @@ public class RecordData {
     private String recordDataBase64;
     /** MIME type of the audio payload. */
     private String mimeType;
+    /** File extension / format without a leading dot (for example: aac, m4a, mp3). */
+    private String fileExtension;
     /** Recording duration in milliseconds. */
     private int msDuration;
 
     public RecordData() {}
 
     public RecordData(String recordDataBase64, int msDuration, String mimeType, String uri) {
+        this(recordDataBase64, msDuration, mimeType, inferFileExtension(mimeType, uri), uri);
+    }
+
+    public RecordData(String recordDataBase64, int msDuration, String mimeType, String fileExtension, String uri) {
         this.recordDataBase64 = recordDataBase64;
         this.msDuration = msDuration;
         this.mimeType = mimeType;
+        this.fileExtension = fileExtension;
         this.uri = uri;
     }
 
@@ -50,6 +57,15 @@ public class RecordData {
         this.mimeType = mimeType;
     }
 
+    /** Returns the file extension / format of the recording. */
+    public String getFileExtension() {
+        return fileExtension;
+    }
+
+    public void setFileExtension(String fileExtension) {
+        this.fileExtension = fileExtension;
+    }
+
     /** Returns the file URI, if present. */
     public String getUri() {
         return uri;
@@ -61,7 +77,26 @@ public class RecordData {
         toReturn.put("recordDataBase64", recordDataBase64);
         toReturn.put("msDuration", msDuration);
         toReturn.put("mimeType", mimeType);
+        toReturn.put("fileExtension", fileExtension);
         toReturn.put("uri", uri);
         return toReturn;
+    }
+
+    private static String inferFileExtension(String mimeType, String uri) {
+        if (uri != null) {
+            int dotIndex = uri.lastIndexOf('.');
+            if (dotIndex >= 0 && dotIndex < uri.length() - 1) {
+                return uri.substring(dotIndex + 1).toLowerCase();
+            }
+        }
+
+        if ("audio/mp4".equals(mimeType)) return "m4a";
+        if ("audio/mpeg".equals(mimeType)) return "mp3";
+        if ("audio/wav".equals(mimeType)) return "wav";
+        if ("audio/webm".equals(mimeType) || "audio/webm;codecs=opus".equals(mimeType)) return "webm";
+        if ("audio/ogg;codecs=opus".equals(mimeType) || "audio/ogg;codecs=vorbis".equals(mimeType)) return "ogg";
+        if ("audio/aac".equals(mimeType)) return "aac";
+
+        return "";
     }
 }

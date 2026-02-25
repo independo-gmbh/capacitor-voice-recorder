@@ -73,6 +73,7 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
             case .success(let recordData):
                 XCTAssertEqual(recordData.recordDataBase64, "BASE64")
                 XCTAssertEqual(recordData.mimeType, "audio/mp4")
+                XCTAssertEqual(recordData.fileExtension, "m4a")
                 XCTAssertEqual(recordData.msDuration, 1500)
                 XCTAssertNil(recordData.uri)
                 XCTAssertTrue(platform.readFileCalled)
@@ -106,6 +107,7 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
                 XCTAssertNil(recordData.recordDataBase64)
                 XCTAssertEqual(recordData.uri, "/tmp/recording.m4a")
                 XCTAssertEqual(recordData.mimeType, "audio/mp4")
+                XCTAssertEqual(recordData.fileExtension, "m4a")
                 XCTAssertEqual(recordData.msDuration, 2000)
                 XCTAssertFalse(platform.readFileCalled)
             case .failure(let error):
@@ -136,6 +138,7 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
             switch result {
             case .success(let recordData):
                 XCTAssertEqual(recordData.mimeType, "audio/mp4")
+                XCTAssertEqual(recordData.fileExtension, "m4a")
             case .failure(let error):
                 XCTFail("Unexpected error: \(error)")
             }

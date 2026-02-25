@@ -342,6 +342,7 @@ describe('VoiceRecorderImpl recording flow', () => {
         const data = await recorder.stopRecording();
         expect(data.value.recordDataBase64).toBe('BASE64_DATA');
         expect(data.value.mimeType).toBe('audio/aac');
+        expect(data.value.fileExtension).toBe('aac');
         expect(data.value.msDuration).toBe(1500);
         expect(data.value.uri).toBeUndefined();
 

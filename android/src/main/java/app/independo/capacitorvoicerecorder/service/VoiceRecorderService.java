@@ -92,7 +92,7 @@ public class VoiceRecorderService {
             }
 
             int duration = platform.getDurationMs(recordedFile);
-            RecordData recordData = new RecordData(recordDataBase64, duration, "audio/aac", uri);
+            RecordData recordData = new RecordData(recordDataBase64, duration, "audio/aac", "aac", uri);
             if ((recordDataBase64 == null && uri == null) || recordData.getMsDuration() < 0) {
                 throw new VoiceRecorderServiceException(ErrorCodes.EMPTY_RECORDING);
             }

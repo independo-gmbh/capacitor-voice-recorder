@@ -93,6 +93,7 @@ final class VoiceRecorderService {
             let recordData = RecordData(
                 recordDataBase64: recordDataBase64,
                 mimeType: mimeType,
+                fileExtension: fileExtension,
                 msDuration: self.platform.getDurationMs(audioFileUrl),
                 uri: uri
             )

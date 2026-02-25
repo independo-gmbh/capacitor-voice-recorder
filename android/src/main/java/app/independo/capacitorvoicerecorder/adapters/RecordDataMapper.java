@@ -18,6 +18,7 @@ public final class RecordDataMapper {
         JSObject normalized = new JSObject();
         normalized.put("msDuration", recordData.getMsDuration());
         normalized.put("mimeType", recordData.getMimeType());
+        normalized.put("fileExtension", recordData.getFileExtension());
 
         String uri = recordData.getUri();
         String recordDataBase64 = recordData.getRecordDataBase64();

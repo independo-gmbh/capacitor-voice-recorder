@@ -55,6 +55,7 @@ public class VoiceRecorderServiceStopTest {
 
         assertEquals("BASE64", data.getRecordDataBase64());
         assertEquals("audio/aac", data.getMimeType());
+        assertEquals("aac", data.getFileExtension());
         assertEquals(1500, data.getMsDuration());
         assertNull(data.getUri());
         assertTrue(platform.readFileCalled);
@@ -74,6 +75,7 @@ public class VoiceRecorderServiceStopTest {
 
         assertNull(data.getRecordDataBase64());
         assertEquals("file:///tmp/recording.aac", data.getUri());
+        assertEquals("aac", data.getFileExtension());
         assertFalse(platform.readFileCalled);
         assertTrue(platform.toUriCalled);
         assertFalse(platform.recorder.deleteCalled);
