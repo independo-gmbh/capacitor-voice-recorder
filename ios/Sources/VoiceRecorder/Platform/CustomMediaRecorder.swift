@@ -1,6 +1,8 @@
 import Foundation
 import AVFoundation
 
+private let m4aFileExtension = "m4a"
+
 protocol AudioSessionProtocol: AnyObject {
     var category: AVAudioSession.Category { get }
     func setCategory(_ category: AVAudioSession.Category) throws
@@ -95,7 +97,9 @@ class CustomMediaRecorder: RecorderAdapter {
             originalRecordingSessionCategory = recordingSession.category
             try recordingSession.setCategory(AVAudioSession.Category.playAndRecord)
             try recordingSession.setActive(true, options: [])
-            baseAudioFilePath = getDirectoryToSaveAudioFile().appendingPathComponent("recording-\(Int(Date().timeIntervalSince1970 * 1000)).aac")
+            baseAudioFilePath = getDirectoryToSaveAudioFile().appendingPathComponent(
+                "recording-\(Int(Date().timeIntervalSince1970 * 1000)).\(m4aFileExtension)"
+            )
             audioFileSegments = [baseAudioFilePath]
             audioRecorder = try audioRecorderFactory(baseAudioFilePath, settings)
             setupInterruptionHandling()
@@ -187,7 +191,9 @@ class CustomMediaRecorder: RecorderAdapter {
                     let directory = getDirectoryToSaveAudioFile()
                     let timestamp = Int(Date().timeIntervalSince1970 * 1000)
                     let segmentNumber = audioFileSegments.count
-                    let segmentPath = directory.appendingPathComponent("recording-\(timestamp)-segment-\(segmentNumber).aac")
+                    let segmentPath = directory.appendingPathComponent(
+                        "recording-\(timestamp)-segment-\(segmentNumber).\(m4aFileExtension)"
+                    )
                     audioRecorder = try audioRecorderFactory(segmentPath, settings)
                     audioFileSegments.append(segmentPath)
                 }
@@ -263,7 +269,7 @@ class CustomMediaRecorder: RecorderAdapter {
         }
 
         let basePathWithoutExtension = baseAudioFilePath.deletingPathExtension()
-        let mergedFilePath = basePathWithoutExtension.appendingPathExtension("m4a")
+        let mergedFilePath = basePathWithoutExtension.appendingPathExtension(m4aFileExtension)
         let segmentURLs = audioFileSegments
         let keys = ["tracks", "duration"]
         let dispatchGroup = DispatchGroup()
@@ -348,7 +354,9 @@ class CustomMediaRecorder: RecorderAdapter {
             }
 
             let tempDirectory = self.getDirectoryToSaveAudioFile()
-            let tempPath = tempDirectory.appendingPathComponent("temp-merged-\(Int(Date().timeIntervalSince1970 * 1000)).m4a")
+            let tempPath = tempDirectory.appendingPathComponent(
+                "temp-merged-\(Int(Date().timeIntervalSince1970 * 1000)).\(m4aFileExtension)"
+            )
 
             exportSession.outputURL = tempPath
             exportSession.outputFileType = .m4a

@@ -56,7 +56,7 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
         platform.base64Payload = "BASE64"
         platform.durationMs = 1500
         let recorder = VoiceRecorderServiceFixtures.FakeRecorder()
-        recorder.outputFile = URL(fileURLWithPath: "/tmp/recording.aac")
+        recorder.outputFile = URL(fileURLWithPath: "/tmp/recording.m4a")
         let service = VoiceRecorderServiceFixtures.makeService(
             platform: platform,
             recorder: recorder,
@@ -72,7 +72,8 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
             switch result {
             case .success(let recordData):
                 XCTAssertEqual(recordData.recordDataBase64, "BASE64")
-                XCTAssertEqual(recordData.mimeType, "audio/aac")
+                XCTAssertEqual(recordData.mimeType, "audio/mp4")
+                XCTAssertEqual(recordData.fileExtension, "m4a")
                 XCTAssertEqual(recordData.msDuration, 1500)
                 XCTAssertNil(recordData.uri)
                 XCTAssertTrue(platform.readFileCalled)
@@ -88,7 +89,7 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
         let platform = VoiceRecorderServiceFixtures.FakePlatform()
         platform.durationMs = 2000
         let recorder = VoiceRecorderServiceFixtures.FakeRecorder()
-        recorder.outputFile = URL(fileURLWithPath: "/tmp/recording.aac")
+        recorder.outputFile = URL(fileURLWithPath: "/tmp/recording.m4a")
         let service = VoiceRecorderServiceFixtures.makeService(
             platform: platform,
             recorder: recorder,
@@ -104,8 +105,9 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
             switch result {
             case .success(let recordData):
                 XCTAssertNil(recordData.recordDataBase64)
-                XCTAssertEqual(recordData.uri, "/tmp/recording.aac")
-                XCTAssertEqual(recordData.mimeType, "audio/aac")
+                XCTAssertEqual(recordData.uri, "/tmp/recording.m4a")
+                XCTAssertEqual(recordData.mimeType, "audio/mp4")
+                XCTAssertEqual(recordData.fileExtension, "m4a")
                 XCTAssertEqual(recordData.msDuration, 2000)
                 XCTAssertFalse(platform.readFileCalled)
             case .failure(let error):
@@ -136,6 +138,7 @@ final class VoiceRecorderServiceStopTests: XCTestCase {
             switch result {
             case .success(let recordData):
                 XCTAssertEqual(recordData.mimeType, "audio/mp4")
+                XCTAssertEqual(recordData.fileExtension, "m4a")
             case .failure(let error):
                 XCTFail("Unexpected error: \(error)")
             }

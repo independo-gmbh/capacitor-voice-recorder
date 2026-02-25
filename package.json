@@ -13,31 +13,32 @@
     "url": "https://github.com/independo-gmbh/capacitor-voice-recorder.git"
   },
   "description": "Capacitor plugin for voice recording",
-  "version": "8.1.8",
+  "version": "8.2.0-dev.1",
+  "packageManager": "pnpm@10.30.2",
   "devDependencies": {
-    "@capacitor/android": "^8.0.2",
-    "@capacitor/core": "^8.0.2",
-    "@capacitor/ios": "^8.0.2",
-    "conventional-changelog-conventionalcommits": "^9.1.0",
-    "jest-environment-jsdom": "^30.2.0",
-    "jest": "^30.2.0",
-    "rollup": "^4.56.0",
-    "eslint": "^8.57.0",
-    "@semantic-release/git": "^10.0.1",
-    "@ionic/swiftlint-config": "^2.0.0",
-    "swiftlint": "^2.0.0",
-    "@typescript-eslint/parser": "^5.62.0",
-    "typescript": "^5.9.3",
-    "@semantic-release/changelog": "^6.0.3",
-    "@types/node": "^25.0.10",
-    "@saithodev/semantic-release-backmerge": "^4.0.1",
-    "@capacitor/docgen": "^0.3.1",
-    "semantic-release": "^25.0.2",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@types/jest": "^30.0.0",
-    "@ionic/prettier-config": "^4.0.0",
+    "@capacitor/android": "catalog:",
+    "@capacitor/core": "catalog:",
+    "@capacitor/docgen": "catalog:",
+    "@capacitor/ios": "catalog:",
     "@ionic/eslint-config": "^0.4.0",
-    "ts-jest": "^29.4.6"
+    "@ionic/prettier-config": "^4.0.0",
+    "@ionic/swiftlint-config": "^2.0.0",
+    "@saithodev/semantic-release-backmerge": "^4.0.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.3.0",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "conventional-changelog-conventionalcommits": "^9.1.0",
+    "eslint": "^8.57.1",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "rollup": "^4.59.0",
+    "semantic-release": "^25.0.3",
+    "swiftlint": "^2.0.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3"
   },
   "main": "dist/plugin.cjs.js",
   "files": [
@@ -54,16 +55,16 @@
     "url": "https://github.com/independo-gmbh/capacitor-voice-recorder/issues"
   },
   "scripts": {
-    "upgrade": "npx npm-check-updates -u",
-    "build": "npm run clean && npm run docgen && tsc && rollup -c rollup.config.mjs",
-    "lint": "npm run eslint",
-    "prepublishOnly": "npm run build",
-    "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
+    "upgrade": "pnpm dlx npm-check-updates -u",
+    "build": "pnpm run clean && pnpm run docgen && tsc && rollup -c rollup.config.mjs",
+    "lint": "pnpm run eslint",
+    "prepublishOnly": "pnpm run build",
+    "verify": "pnpm run verify:ios && pnpm run verify:android && pnpm run verify:web",
     "verify:android": "node scripts/verify-android.js",
     "verify:ios": "xcodebuild -scheme IndependoCapacitorVoiceRecorder -destination generic/platform=iOS",
-    "verify:web": "npm run build",
+    "verify:web": "pnpm run build",
     "watch": "tsc --watch",
-    "test": "npm run test:web && npm run test:android && npm run test:ios",
+    "test": "pnpm run test:web && pnpm run test:android && pnpm run test:ios",
     "test:web": "jest",
     "test:web:coverage": "jest --coverage --coverageReporters=lcov --coverageReporters=text-summary",
     "test:android": "node scripts/verify-android.js testDebugUnitTest",
@@ -74,7 +75,7 @@
     "clean": "rm -rf dist",
     "swiftlint": "node-swiftlint",
     "docgen": "docgen --api VoiceRecorderPlugin --output-readme README.md --output-json dist/docs.json",
-    "fmt": "npm run eslint -- --fix"
+    "fmt": "pnpm run eslint --fix"
   },
   "eslintConfig": {
     "extends": "@ionic/eslint-config/recommended"
@@ -112,8 +113,8 @@
     }
   ],
   "peerDependencies": {
-    "@capacitor/filesystem": ">=8.0.0",
-    "@capacitor/core": ">=8.0.0"
+    "@capacitor/core": ">=8.0.0",
+    "@capacitor/filesystem": ">=8.0.0"
   },
   "module": "dist/esm/index.js"
 }

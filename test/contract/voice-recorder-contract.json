@@ -41,6 +41,7 @@
                 "recordDataBase64",
                 "msDuration",
                 "mimeType",
+                "fileExtension",
                 "uri"
             ],
             "absenceConventions": {
@@ -78,6 +79,7 @@
                 "recordDataBase64",
                 "msDuration",
                 "mimeType",
+                "fileExtension",
                 "uri"
             ],
             "absenceConventions": "omit-when-absent",

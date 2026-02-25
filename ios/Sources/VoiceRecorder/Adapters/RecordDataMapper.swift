@@ -12,6 +12,7 @@ struct RecordDataMapper {
         var normalized: Dictionary<String, Any> = [
             "msDuration": recordData.msDuration,
             "mimeType": recordData.mimeType,
+            "fileExtension": recordData.fileExtension,
         ]
 
         if let uri = normalizedUri(from: recordData.uri) {

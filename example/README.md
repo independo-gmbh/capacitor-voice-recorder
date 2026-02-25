@@ -4,7 +4,7 @@ Use this app to manually validate the Capacitor Voice Recorder plugin on web, An
 
 ### Prerequisites
 
-- Node.js + npm
+- Node.js + pnpm
 - Android Studio (for Android)
 - Xcode + CocoaPods (for iOS)
 
@@ -14,42 +14,42 @@ From the repo root:
 
 ```bash
 cd example
-npm install
-npm run build
-npx cap sync
+pnpm install
+pnpm build
+pnpm exec cap sync
 ```
 
-The example links the local plugin via `file:..`, so no extra publish step is needed. Android and iOS
+The example links the local plugin via the pnpm workspace (`workspace:*`), so no extra publish step is needed. Android and iOS
 projects are already committed, so you do not need `npx cap add`.
 
 ### Run on Web
 
 ```bash
-npm start
+pnpm start
 ```
 
 ### Run on Android
 
 ```bash
-npx cap open android
+pnpm exec cap open android
 ```
 
 Or run directly from the CLI:
 
 ```bash
-npx cap run android
+pnpm exec cap run android
 ```
 
 ### Run on iOS
 
 ```bash
-npx cap open ios
+pnpm exec cap open ios
 ```
 
 Or run directly from the CLI:
 
 ```bash
-npx cap run ios
+pnpm exec cap run ios
 ```
 
 ### Test Checklist
@@ -64,6 +64,6 @@ npx cap run ios
 If you update the plugin source, rebuild and resync before launching native targets:
 
 ```bash
-npm run build
-npx cap sync
+pnpm -C .. build
+pnpm exec cap sync
 ```

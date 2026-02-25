@@ -22,6 +22,18 @@ export interface RecordingOptions {
      * An optional subdirectory in the specified directory where the recording should be saved.
      */
     subDirectory?: string;
+
+    /**
+     * Whether the web implementation should require the selected recording MIME type
+     * to also be playable by the browser's native HTML `<audio>` element.
+     *
+     * Defaults to `true` on web to reduce cases where `MediaRecorder` reports support
+     * for a format but the recorded file cannot be played back in the same browser
+     * (observed on some Safari/iOS/WKWebView combinations).
+     *
+     * Native platforms ignore this option.
+     */
+    requirePlaybackSupport?: boolean;
 }
 
 /**
@@ -44,6 +56,10 @@ export interface RecordingData {
          * The MIME type of the recorded file.
          */
         mimeType: string;
+        /**
+         * The recorded file extension / format without a leading dot (for example: `m4a`, `aac`, `mp3`, `webm`).
+         */
+        fileExtension: string;
 
         /**
          * The URI of the recording file.

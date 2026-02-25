@@ -185,7 +185,8 @@ final class VoiceRecorderBridgeTests: XCTestCase {
             return
         }
         XCTAssertEqual(payload["recordDataBase64"] as? String, "BASE64")
-        XCTAssertEqual(payload["mimeType"] as? String, "audio/aac")
+        XCTAssertEqual(payload["mimeType"] as? String, "audio/mp4")
+        XCTAssertEqual(payload["fileExtension"] as? String, "m4a")
         XCTAssertEqual(payload["msDuration"] as? Int, 1234)
         XCTAssertEqual(payload["uri"] as? String, "")
         XCTAssertNil(stopCall.rejected)
@@ -216,7 +217,8 @@ final class VoiceRecorderBridgeTests: XCTestCase {
             return
         }
         XCTAssertEqual(payload["msDuration"] as? Int, 2000)
-        XCTAssertEqual(payload["mimeType"] as? String, "audio/aac")
+        XCTAssertEqual(payload["mimeType"] as? String, "audio/mp4")
+        XCTAssertEqual(payload["fileExtension"] as? String, "m4a")
         XCTAssertNil(payload["recordDataBase64"])
         let uri = payload["uri"] as? String
         XCTAssertTrue(uri?.hasPrefix("file://") == true)

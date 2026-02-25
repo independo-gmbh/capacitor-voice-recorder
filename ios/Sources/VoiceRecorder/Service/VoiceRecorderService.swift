@@ -1,5 +1,9 @@
 import Foundation
 
+private let m4aFileExtension = "m4a"
+private let mp4AudioMimeType = "audio/mp4"
+private let aacAudioMimeType = "audio/aac"
+
 /// Service layer that orchestrates recording operations.
 final class VoiceRecorderService {
     /// Platform adapter for device and file operations.
@@ -82,13 +86,14 @@ final class VoiceRecorderService {
 
             let audioFileUrl = recorder.getOutputFile()
             let fileExtension = audioFileUrl.pathExtension.lowercased()
-            let mimeType = fileExtension == "m4a" ? "audio/mp4" : "audio/aac"
+            let mimeType = fileExtension == m4aFileExtension ? mp4AudioMimeType : aacAudioMimeType
             let sendDataAsBase64 = recorder.options?.directory == nil
             let recordDataBase64 = sendDataAsBase64 ? self.platform.readFileAsBase64(audioFileUrl) : nil
             let uri = sendDataAsBase64 ? nil : audioFileUrl.path
             let recordData = RecordData(
                 recordDataBase64: recordDataBase64,
                 mimeType: mimeType,
+                fileExtension: fileExtension,
                 msDuration: self.platform.getDurationMs(audioFileUrl),
                 uri: uri
             )

@@ -21,8 +21,8 @@ The `@independo/capacitor-voice-recorder` plugin allows you to record audio on A
 ## Installation
 
 ```
-npm install --save @independo/capacitor-voice-recorder
-npx cap sync
+pnpm add @independo/capacitor-voice-recorder
+pnpm exec cap sync
 ```
 
 ### Configuration
@@ -48,7 +48,7 @@ Add the following to your `Info.plist`:
 
 - Capacitor 8+
 - iOS 15+
-- Android minSdk 24+; builds require Java 21 (recommended). `npm run verify:android` requires a Java version supported
+- Android minSdk 24+; builds require Java 21 (recommended). `pnpm verify:android` requires a Java version supported
   by the bundled Gradle wrapper (currently Java 21–24, with Java 21 recommended).
 
 ### Compatibility
@@ -93,7 +93,7 @@ export const stopRecording = async () => {
 
 ## API
 
-Below is an index of all available methods. Run `npm run docgen` after updating any JSDoc comments to refresh this
+Below is an index of all available methods. Run `pnpm docgen` after updating any JSDoc comments to refresh this
 section.
 
 <docgen-index>
@@ -322,19 +322,20 @@ Interface representing a generic response with a boolean value.
 
 Can be used to specify options for the recording.
 
-| Prop               | Type                                            | Description                                                                                                                                                                                                        |
-| ------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **`directory`**    | <code><a href="#directory">Directory</a></code> | The capacitor filesystem directory where the recording should be saved. If not specified, the recording will be stored in a base64 string and returned in the <a href="#recordingdata">`RecordingData`</a> object. |
-| **`subDirectory`** | <code>string</code>                             | An optional subdirectory in the specified directory where the recording should be saved.                                                                                                                           |
+| Prop                         | Type                                            | Description                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`directory`**              | <code><a href="#directory">Directory</a></code> | The capacitor filesystem directory where the recording should be saved. If not specified, the recording will be stored in a base64 string and returned in the <a href="#recordingdata">`RecordingData`</a> object.                                                                                                                                                                                               |
+| **`subDirectory`**           | <code>string</code>                             | An optional subdirectory in the specified directory where the recording should be saved.                                                                                                                                                                                                                                                                                                                         |
+| **`requirePlaybackSupport`** | <code>boolean</code>                            | Whether the web implementation should require the selected recording MIME type to also be playable by the browser's native HTML `&lt;audio&gt;` element. Defaults to `true` on web to reduce cases where `MediaRecorder` reports support for a format but the recorded file cannot be played back in the same browser (observed on some Safari/iOS/WKWebView combinations). Native platforms ignore this option. |
 
 
 #### RecordingData
 
 Interface representing the data of a recording.
 
-| Prop        | Type                                                                                           | Description                                 |
-| ----------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| **`value`** | <code>{ recordDataBase64: string; msDuration: number; mimeType: string; uri?: string; }</code> | The value containing the recording details. |
+| Prop        | Type                                                                                                                  | Description                                 |
+| ----------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **`value`** | <code>{ recordDataBase64: string; msDuration: number; mimeType: string; fileExtension: string; uri?: string; }</code> | The value containing the recording details. |
 
 
 #### CurrentRecordingStatus
@@ -412,8 +413,8 @@ an interruption begins, the recording is paused, the status becomes `INTERRUPTED
 event fires. When the interruption ends, the `voiceRecordingInterruptionEnded` event fires, and the status stays
 `INTERRUPTED` until you call `resumeRecording()` or `stopRecording()`. Web does not provide interruption handling.
 
-If interruptions occur on iOS, recordings are segmented and merged when you stop. The merged file is M4A with MIME type
-`audio/mp4`. Recordings without interruptions remain AAC with MIME type `audio/aac`.
+If interruptions occur on iOS, recordings are segmented and merged when you stop. iOS recordings are normalized to an
+M4A container with MIME type `audio/mp4` for consistent output across interrupted and non-interrupted sessions.
 
 ### Web constraints
 
@@ -422,6 +423,9 @@ If interruptions occur on iOS, recordings are segmented and merged when you stop
 - The Permissions API is not consistently supported; `hasAudioRecordingPermission()` can reject with
   `COULD_NOT_QUERY_PERMISSION_STATUS`. In that case, use `requestAudioRecordingPermission()` or `startRecording()` and
   handle errors.
+- By default, the web implementation picks a MIME type that is supported for both recording (`MediaRecorder`) and
+  playback (`<audio>`). You can disable the playback probe with `RecordingOptions.requirePlaybackSupport = false` if
+  you prefer recorder-only MIME selection.
 
 ## Recording options and storage
 
@@ -447,9 +451,9 @@ The plugin returns the recording in one of several possible formats. The actual 
 browser capabilities.
 
 - Android: `audio/aac`
-- iOS: `audio/aac` (or `audio/mp4` when interrupted recordings are merged)
-- Web: first supported type from `audio/aac`, `audio/webm;codecs=opus`, `audio/ogg;codecs=opus`, `audio/webm`,
-  `audio/mp4`
+- iOS: `audio/mp4` (M4A container)
+- Web: first supported MIME type from the plugin's ordered list, with a default preference for formats that are
+  reported as playable by the browser `<audio>` element (in addition to `MediaRecorder` support)
 
 Because not all devices and browsers support the same formats, recordings may not be playable everywhere. If you need
 consistent playback across targets, convert recordings to a single format outside this plugin. The plugin focuses on
