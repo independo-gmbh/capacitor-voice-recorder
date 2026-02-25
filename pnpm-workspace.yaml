@@ -1,0 +1,15 @@
+packages:
+  - .
+  - example
+
+catalog:
+  '@capacitor/android': ^8.1.0
+  '@capacitor/cli': ^8.1.0
+  '@capacitor/core': ^8.1.0
+  '@capacitor/docgen': ^0.3.1
+  '@capacitor/ios': ^8.1.0
+
+onlyBuiltDependencies:
+  - esbuild
+  - swiftlint
+  - unrs-resolver

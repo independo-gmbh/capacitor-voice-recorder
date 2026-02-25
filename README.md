@@ -21,8 +21,8 @@ The `@independo/capacitor-voice-recorder` plugin allows you to record audio on A
 ## Installation
 
 ```
-npm install --save @independo/capacitor-voice-recorder
-npx cap sync
+pnpm add @independo/capacitor-voice-recorder
+pnpm exec cap sync
 ```
 
 ### Configuration
@@ -48,7 +48,7 @@ Add the following to your `Info.plist`:
 
 - Capacitor 8+
 - iOS 15+
-- Android minSdk 24+; builds require Java 21 (recommended). `npm run verify:android` requires a Java version supported
+- Android minSdk 24+; builds require Java 21 (recommended). `pnpm verify:android` requires a Java version supported
   by the bundled Gradle wrapper (currently Java 21–24, with Java 21 recommended).
 
 ### Compatibility
@@ -93,7 +93,7 @@ export const stopRecording = async () => {
 
 ## API
 
-Below is an index of all available methods. Run `npm run docgen` after updating any JSDoc comments to refresh this
+Below is an index of all available methods. Run `pnpm docgen` after updating any JSDoc comments to refresh this
 section.
 
 <docgen-index>
