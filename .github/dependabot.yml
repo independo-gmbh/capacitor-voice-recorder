@@ -15,16 +15,12 @@ updates:
       semantic-release:
         patterns:
           - "*semantic-release*"
-
-  - package-ecosystem: "npm"
-    directory: "/example"
-    target-branch: "dev"
-    schedule:
-      interval: "weekly"
-    groups:
-      capacitor:
+      jest:
         patterns:
-          - "@capacitor/*"
+          - "*jest*"
+      eslint:
+        patterns:
+          - "*eslint*"
 
   - package-ecosystem: "gradle"
     directory: "/android"
