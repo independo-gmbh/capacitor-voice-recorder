@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
       - uses: actions/setup-node@v6
@@ -39,7 +39,7 @@ jobs:
       - lint
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
       - uses: actions/setup-node@v6
@@ -58,7 +58,7 @@ jobs:
       - lint
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
       - uses: actions/setup-node@v6
@@ -87,7 +87,7 @@ jobs:
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
       - uses: actions/setup-node@v6
@@ -108,7 +108,7 @@ jobs:
       - test_ios
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
       - uses: actions/setup-node@v6
@@ -130,7 +130,7 @@ jobs:
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
       - uses: actions/setup-node@v6
@@ -150,7 +150,7 @@ jobs:
       - test_android
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
       - uses: actions/setup-node@v6
@@ -179,7 +179,7 @@ jobs:
       - test_web
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
       - uses: actions/setup-node@v6
@@ -201,7 +201,7 @@ jobs:
       - build-example
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
       - uses: actions/setup-node@v6
@@ -225,7 +225,7 @@ jobs:
       - build
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           run_install: false
       - uses: actions/setup-node@v6
