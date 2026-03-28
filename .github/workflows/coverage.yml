@@ -32,7 +32,7 @@ jobs:
       - run: pnpm run test:web:coverage
       - name: Upload web coverage
         if: ${{ env.CODECOV_TOKEN != '' }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ env.CODECOV_TOKEN }}
           files: coverage/lcov.info
@@ -69,7 +69,7 @@ jobs:
       - run: pnpm run test:android:coverage
       - name: Upload Android coverage
         if: ${{ env.CODECOV_TOKEN != '' }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ env.CODECOV_TOKEN }}
           files: android/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
@@ -98,7 +98,7 @@ jobs:
       - run: pnpm run test:ios:coverage
       - name: Upload iOS coverage
         if: ${{ env.CODECOV_TOKEN != '' }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ env.CODECOV_TOKEN }}
           files: coverage/ios-cobertura.xml
