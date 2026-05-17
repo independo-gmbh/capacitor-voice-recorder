@@ -8,13 +8,13 @@ catalogs:
   default:
     '@capacitor/android':
       specifier: ^8.3.3
-      version: 8.3.3
+      version: 8.3.4
     '@capacitor/cli':
       specifier: ^8.3.3
       version: 8.3.3
     '@capacitor/core':
       specifier: ^8.3.3
-      version: 8.3.3
+      version: 8.3.4
     '@capacitor/docgen':
       specifier: ^0.3.1
       version: 0.3.1
@@ -31,23 +31,23 @@ importers:
     dependencies:
       '@capacitor/filesystem':
         specifier: '>=8.0.0'
-        version: 8.1.2(@capacitor/core@8.3.3)
+        version: 8.1.2(@capacitor/core@8.3.4)
       capacitor-blob-writer:
         specifier: ^1.1.20
-        version: 1.1.20(@capacitor/core@8.3.3)(@capacitor/filesystem@8.1.2(@capacitor/core@8.3.3))
+        version: 1.1.20(@capacitor/core@8.3.4)(@capacitor/filesystem@8.1.2(@capacitor/core@8.3.4))
     devDependencies:
       '@capacitor/android':
         specifier: 'catalog:'
-        version: 8.3.3(@capacitor/core@8.3.3)
+        version: 8.3.4(@capacitor/core@8.3.4)
       '@capacitor/core':
         specifier: 'catalog:'
-        version: 8.3.3
+        version: 8.3.4
       '@capacitor/docgen':
         specifier: 'catalog:'
         version: 0.3.1
       '@capacitor/ios':
-        specifier: 'catalog:'
-        version: 8.3.3(@capacitor/core@8.3.3)
+        specifier: 8.3.4
+        version: 8.3.4(@capacitor/core@8.3.4)
       '@ionic/eslint-config':
         specifier: ^0.4.0
         version: 0.4.0(eslint@8.57.1)(typescript@5.9.3)
@@ -110,13 +110,13 @@ importers:
     dependencies:
       '@capacitor/android':
         specifier: 'catalog:'
-        version: 8.3.3(@capacitor/core@8.3.3)
+        version: 8.3.4(@capacitor/core@8.3.4)
       '@capacitor/core':
         specifier: 'catalog:'
-        version: 8.3.3
+        version: 8.3.4
       '@capacitor/ios':
         specifier: 'catalog:'
-        version: 8.3.3(@capacitor/core@8.3.3)
+        version: 8.3.3(@capacitor/core@8.3.4)
       '@independo/capacitor-voice-recorder':
         specifier: workspace:*
         version: link:..
@@ -310,8 +310,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@capacitor/android@8.3.3':
-    resolution: {integrity: sha512-Km7/voqtWVrN+qDHktoYb7DIliW+eakglH4jyT7C0dxODW/gDrMi19yC0ATNM2+rtaj3e2i46pgZ3A5UCa+44Q==}
+  '@capacitor/android@8.3.4':
+    resolution: {integrity: sha512-7gJjrG3X32Am1QMLqgMztWTYMLMVNE+VZwhekNxhvYizH4mOV05vH+rC9B+f17bCkYZfyu/qXQX6hoY7kLeVZw==}
     peerDependencies:
       '@capacitor/core': ^8.3.0
 
@@ -320,8 +320,8 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
-  '@capacitor/core@8.3.3':
-    resolution: {integrity: sha512-xx1FIriZQ5jwqEkZwmWQHfXNEn5a9ZLOtdFoJXslh0ian6T/EU+QJtRmZw3KRsmcUV6p5ufczBrzF1rVP8Nu3A==}
+  '@capacitor/core@8.3.4':
+    resolution: {integrity: sha512-CqRQCkb6HXxcx/N7s+hHTN6ef2CmamFiRMITwm4qB840ph56mS42bzUgn6tKCP+RZjdDweiRHj9ytDDeN6jFag==}
 
   '@capacitor/docgen@0.3.1':
     resolution: {integrity: sha512-WBdAUquQC4hiZOVk1YbY5Rs3vlDrNdCGt3KGnMa2dc2UBa91Q7PQ/jLW/oZyfVIfiXWu7t1KUhhM3MyiZepUrQ==}
@@ -335,6 +335,11 @@ packages:
 
   '@capacitor/ios@8.3.3':
     resolution: {integrity: sha512-BHlTOxarrvkaqDdlTxKwip+dQmfQSnfctizpheR7SWp/VIlR0HcPpYzWMTiVbHQLq3nLRUdeZO1wSPVGvxzAPA==}
+    peerDependencies:
+      '@capacitor/core': ^8.3.0
+
+  '@capacitor/ios@8.3.4':
+    resolution: {integrity: sha512-XvvnPFWWP/gwwO811ue7nEBKSZqDCIB8hxGgWV6iXA7DSVLqMOEmQdfHj94kkVxof2wL9XWHypu3ayDULo7U5w==}
     peerDependencies:
       '@capacitor/core': ^8.3.0
 
@@ -4783,9 +4788,9 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@capacitor/android@8.3.3(@capacitor/core@8.3.3)':
+  '@capacitor/android@8.3.4(@capacitor/core@8.3.4)':
     dependencies:
-      '@capacitor/core': 8.3.3
+      '@capacitor/core': 8.3.4
 
   '@capacitor/cli@8.3.3':
     dependencies:
@@ -4809,7 +4814,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@capacitor/core@8.3.3':
+  '@capacitor/core@8.3.4':
     dependencies:
       tslib: 2.8.1
 
@@ -4820,14 +4825,18 @@ snapshots:
       minimist: 1.2.8
       typescript: 4.2.4
 
-  '@capacitor/filesystem@8.1.2(@capacitor/core@8.3.3)':
+  '@capacitor/filesystem@8.1.2(@capacitor/core@8.3.4)':
     dependencies:
-      '@capacitor/core': 8.3.3
+      '@capacitor/core': 8.3.4
       '@capacitor/synapse': 1.0.4
 
-  '@capacitor/ios@8.3.3(@capacitor/core@8.3.3)':
+  '@capacitor/ios@8.3.3(@capacitor/core@8.3.4)':
     dependencies:
-      '@capacitor/core': 8.3.3
+      '@capacitor/core': 8.3.4
+
+  '@capacitor/ios@8.3.4(@capacitor/core@8.3.4)':
+    dependencies:
+      '@capacitor/core': 8.3.4
 
   '@capacitor/synapse@1.0.4': {}
 
@@ -6301,10 +6310,10 @@ snapshots:
 
   caniuse-lite@1.0.30001792: {}
 
-  capacitor-blob-writer@1.1.20(@capacitor/core@8.3.3)(@capacitor/filesystem@8.1.2(@capacitor/core@8.3.3)):
+  capacitor-blob-writer@1.1.20(@capacitor/core@8.3.4)(@capacitor/filesystem@8.1.2(@capacitor/core@8.3.4)):
     dependencies:
-      '@capacitor/core': 8.3.3
-      '@capacitor/filesystem': 8.1.2(@capacitor/core@8.3.3)
+      '@capacitor/core': 8.3.4
+      '@capacitor/filesystem': 8.1.2(@capacitor/core@8.3.4)
 
   cardinal@2.1.1:
     dependencies:
