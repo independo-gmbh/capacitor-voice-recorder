@@ -3,11 +3,11 @@ packages:
   - example
 
 catalog:
-  '@capacitor/android': ^8.3.3
-  '@capacitor/cli': ^8.3.3
-  '@capacitor/core': ^8.3.3
+  '@capacitor/android': ^8.3.4
+  '@capacitor/cli': ^8.3.4
+  '@capacitor/core': ^8.3.4
   '@capacitor/docgen': ^0.3.1
-  '@capacitor/ios': ^8.3.3
+  '@capacitor/ios': ^8.3.4
 
 onlyBuiltDependencies:
   - esbuild
