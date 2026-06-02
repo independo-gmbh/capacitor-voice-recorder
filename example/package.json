@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "catalog:",
-    "vite": "^8.0.13"
+    "vite": "^8.0.16"
   },
   "author": "",
   "license": "ISC"
