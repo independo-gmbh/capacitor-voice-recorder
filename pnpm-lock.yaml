@@ -7,20 +7,20 @@ settings:
 catalogs:
   default:
     '@capacitor/android':
-      specifier: ^8.3.4
-      version: 8.3.4
+      specifier: ^8.4.0
+      version: 8.4.0
     '@capacitor/cli':
-      specifier: ^8.3.4
-      version: 8.3.4
+      specifier: ^8.4.0
+      version: 8.4.0
     '@capacitor/core':
-      specifier: ^8.3.4
-      version: 8.3.4
+      specifier: ^8.4.0
+      version: 8.4.0
     '@capacitor/docgen':
       specifier: ^0.3.1
       version: 0.3.1
     '@capacitor/ios':
-      specifier: ^8.3.4
-      version: 8.3.4
+      specifier: ^8.4.0
+      version: 8.4.0
 
 overrides:
   flatted@<=3.4.1: '>=3.4.2'
@@ -31,23 +31,23 @@ importers:
     dependencies:
       '@capacitor/filesystem':
         specifier: '>=8.0.0'
-        version: 8.1.2(@capacitor/core@8.3.4)
+        version: 8.1.2(@capacitor/core@8.4.0)
       capacitor-blob-writer:
         specifier: ^1.1.20
-        version: 1.1.20(@capacitor/core@8.3.4)(@capacitor/filesystem@8.1.2(@capacitor/core@8.3.4))
+        version: 1.1.20(@capacitor/core@8.4.0)(@capacitor/filesystem@8.1.2(@capacitor/core@8.4.0))
     devDependencies:
       '@capacitor/android':
         specifier: 'catalog:'
-        version: 8.3.4(@capacitor/core@8.3.4)
+        version: 8.4.0(@capacitor/core@8.4.0)
       '@capacitor/core':
         specifier: 'catalog:'
-        version: 8.3.4
+        version: 8.4.0
       '@capacitor/docgen':
         specifier: 'catalog:'
         version: 0.3.1
       '@capacitor/ios':
         specifier: 'catalog:'
-        version: 8.3.4(@capacitor/core@8.3.4)
+        version: 8.4.0(@capacitor/core@8.4.0)
       '@ionic/eslint-config':
         specifier: ^0.4.0
         version: 0.4.0(eslint@8.57.1)(typescript@5.9.3)
@@ -110,20 +110,20 @@ importers:
     dependencies:
       '@capacitor/android':
         specifier: 'catalog:'
-        version: 8.3.4(@capacitor/core@8.3.4)
+        version: 8.4.0(@capacitor/core@8.4.0)
       '@capacitor/core':
         specifier: 'catalog:'
-        version: 8.3.4
+        version: 8.4.0
       '@capacitor/ios':
         specifier: 'catalog:'
-        version: 8.3.4(@capacitor/core@8.3.4)
+        version: 8.4.0(@capacitor/core@8.4.0)
       '@independo/capacitor-voice-recorder':
         specifier: workspace:*
         version: link:..
     devDependencies:
       '@capacitor/cli':
         specifier: 'catalog:'
-        version: 8.3.4
+        version: 8.4.0
       vite:
         specifier: ^8.0.16
         version: 8.0.16(@types/node@25.9.1)(esbuild@0.27.4)
@@ -310,18 +310,18 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@capacitor/android@8.3.4':
-    resolution: {integrity: sha512-7gJjrG3X32Am1QMLqgMztWTYMLMVNE+VZwhekNxhvYizH4mOV05vH+rC9B+f17bCkYZfyu/qXQX6hoY7kLeVZw==}
+  '@capacitor/android@8.4.0':
+    resolution: {integrity: sha512-K1ZPkQzvRzPEALz9nBdLx5p5nAPzp5fsTYWk7LRiKZeH/NXqjDvqfTv7lrLgrziQNoDeaL6ijg64oBREzXiV+g==}
     peerDependencies:
-      '@capacitor/core': ^8.3.0
+      '@capacitor/core': ^8.4.0
 
-  '@capacitor/cli@8.3.4':
-    resolution: {integrity: sha512-QEmyNdiDDVNYl0Mahm7YTVA/3t2tKcy7FWYDapeKGavS6HDNHZSjyTVwQpUXQbDZrrs/PS2Wau3Aii+LIFwm/A==}
+  '@capacitor/cli@8.4.0':
+    resolution: {integrity: sha512-5Z9RKHxiqJYRTLrfMeZmzR4qrlg5B85MxsWZ5goyXsLkO3bgpW9a1qV/6fR1SX9s5gwLza5y7PZVwITl/hDJ7g==}
     engines: {node: '>=22.0.0'}
     hasBin: true
 
-  '@capacitor/core@8.3.4':
-    resolution: {integrity: sha512-CqRQCkb6HXxcx/N7s+hHTN6ef2CmamFiRMITwm4qB840ph56mS42bzUgn6tKCP+RZjdDweiRHj9ytDDeN6jFag==}
+  '@capacitor/core@8.4.0':
+    resolution: {integrity: sha512-LrS1xPIrqLtJABBIPDGXxxKmI9OyesrzWw8DiHbxhSC9JoiLUleUAJlX1a0LWIVLRbuY4Szgf9huFeRqYH2SAQ==}
 
   '@capacitor/docgen@0.3.1':
     resolution: {integrity: sha512-WBdAUquQC4hiZOVk1YbY5Rs3vlDrNdCGt3KGnMa2dc2UBa91Q7PQ/jLW/oZyfVIfiXWu7t1KUhhM3MyiZepUrQ==}
@@ -333,10 +333,10 @@ packages:
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
-  '@capacitor/ios@8.3.4':
-    resolution: {integrity: sha512-XvvnPFWWP/gwwO811ue7nEBKSZqDCIB8hxGgWV6iXA7DSVLqMOEmQdfHj94kkVxof2wL9XWHypu3ayDULo7U5w==}
+  '@capacitor/ios@8.4.0':
+    resolution: {integrity: sha512-tnwstEdbTJ2nHAfoAwnurXgYRscWeLY+IIGdz69o24gN2Crfj9Xc0TWo8L5uFLF1LmpbUywH1IT0U1oHV8c+CA==}
     peerDependencies:
-      '@capacitor/core': ^8.3.0
+      '@capacitor/core': ^8.4.0
 
   '@capacitor/synapse@1.0.4':
     resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
@@ -2010,8 +2010,8 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
-  electron-to-chromium@1.5.364:
-    resolution: {integrity: sha512-G/dYE3+AYhyHwzTwg8UbnXf7zqMERYh7l2jJ3QujhFsH8agSYwtnGAR2aZ7f0AakIKJXd5En/Hre4igIUrdlYw==}
+  electron-to-chromium@1.5.366:
+    resolution: {integrity: sha512-OlRuhb688YTCzzU3gXPLn6nGyd+F+53INE1qaKKlu6kETErE8FYsyDh0XqXEU+uBRn0MpCzz2vfNwORhkap8qg==}
 
   elementtree@0.1.7:
     resolution: {integrity: sha512-wkgGT6kugeQk/P6VZ/f4T+4HB41BVgNBq5CDIZVbQ02nvTVqAiVTbskxxu3eA/X96lMlfYOwnLQpN2v5E1zDEg==}
@@ -4799,11 +4799,11 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@capacitor/android@8.3.4(@capacitor/core@8.3.4)':
+  '@capacitor/android@8.4.0(@capacitor/core@8.4.0)':
     dependencies:
-      '@capacitor/core': 8.3.4
+      '@capacitor/core': 8.4.0
 
-  '@capacitor/cli@8.3.4':
+  '@capacitor/cli@8.4.0':
     dependencies:
       '@ionic/cli-framework-output': 2.2.8
       '@ionic/utils-subprocess': 3.0.1
@@ -4825,7 +4825,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@capacitor/core@8.3.4':
+  '@capacitor/core@8.4.0':
     dependencies:
       tslib: 2.8.1
 
@@ -4836,14 +4836,14 @@ snapshots:
       minimist: 1.2.8
       typescript: 4.2.4
 
-  '@capacitor/filesystem@8.1.2(@capacitor/core@8.3.4)':
+  '@capacitor/filesystem@8.1.2(@capacitor/core@8.4.0)':
     dependencies:
-      '@capacitor/core': 8.3.4
+      '@capacitor/core': 8.4.0
       '@capacitor/synapse': 1.0.4
 
-  '@capacitor/ios@8.3.4(@capacitor/core@8.3.4)':
+  '@capacitor/ios@8.4.0(@capacitor/core@8.4.0)':
     dependencies:
-      '@capacitor/core': 8.3.4
+      '@capacitor/core': 8.4.0
 
   '@capacitor/synapse@1.0.4': {}
 
@@ -6280,7 +6280,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.10.33
       caniuse-lite: 1.0.30001793
-      electron-to-chromium: 1.5.364
+      electron-to-chromium: 1.5.366
       node-releases: 2.0.47
       update-browserslist-db: 1.2.3(browserslist@4.28.2)
 
@@ -6321,10 +6321,10 @@ snapshots:
 
   caniuse-lite@1.0.30001793: {}
 
-  capacitor-blob-writer@1.1.20(@capacitor/core@8.3.4)(@capacitor/filesystem@8.1.2(@capacitor/core@8.3.4)):
+  capacitor-blob-writer@1.1.20(@capacitor/core@8.4.0)(@capacitor/filesystem@8.1.2(@capacitor/core@8.4.0)):
     dependencies:
-      '@capacitor/core': 8.3.4
-      '@capacitor/filesystem': 8.1.2(@capacitor/core@8.3.4)
+      '@capacitor/core': 8.4.0
+      '@capacitor/filesystem': 8.1.2(@capacitor/core@8.4.0)
 
   cardinal@2.1.1:
     dependencies:
@@ -6598,7 +6598,7 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  electron-to-chromium@1.5.364: {}
+  electron-to-chromium@1.5.366: {}
 
   elementtree@0.1.7:
     dependencies:
