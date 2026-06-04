@@ -2,6 +2,7 @@ import { attachCanonicalErrorCode } from '../core/error-codes';
 import { normalizeRecordingData } from '../core/recording-contract';
 import type { ResponseFormat } from '../core/response-format';
 import type {
+    CurrentAmplitude,
     CurrentRecordingStatus,
     GenericResponse,
     RecordingData,
@@ -26,6 +27,8 @@ export interface VoiceRecorderPlatform {
     resumeRecording(): Promise<GenericResponse>;
     /** Returns the current recording state. */
     getCurrentStatus(): Promise<CurrentRecordingStatus>;
+    /** Returns the current input amplitude. */
+    getCurrentAmplitude(): Promise<CurrentAmplitude>;
 }
 
 /** Orchestrates platform calls and normalizes responses when requested. */
@@ -84,6 +87,11 @@ export class VoiceRecorderService {
     /** Returns the current recording state. */
     public getCurrentStatus(): Promise<CurrentRecordingStatus> {
         return this.execute(() => this.platform.getCurrentStatus());
+    }
+
+    /** Returns the current input amplitude. */
+    public getCurrentAmplitude(): Promise<CurrentAmplitude> {
+        return this.execute(() => this.platform.getCurrentAmplitude());
     }
 
     /** Wraps calls to apply canonical error codes when requested. */

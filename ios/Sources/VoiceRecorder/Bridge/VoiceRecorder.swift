@@ -22,6 +22,7 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "pauseRecording", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "resumeRecording", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getCurrentStatus", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getCurrentAmplitude", returnType: CAPPluginReturnPromise),
     ]
 
     /// Service layer that performs recording operations.
@@ -184,6 +185,11 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
     @objc func getCurrentStatus(_ call: CAPPluginCall) {
         let status = service?.getCurrentStatus() ?? .NONE
         call.resolve(ResponseGenerator.statusResponse(status))
+    }
+
+    /// Returns the current input amplitude.
+    @objc func getCurrentAmplitude(_ call: CAPPluginCall) {
+        call.resolve(ResponseGenerator.dataResponse(service?.getCurrentAmplitude() ?? 0))
     }
 
     /// Returns whether AVAudioSession reports granted permission.

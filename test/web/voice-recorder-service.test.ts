@@ -23,6 +23,7 @@ const createPlatform = (overrides: Partial<VoiceRecorderPlatform> = {}): VoiceRe
         pauseRecording: jest.fn().mockResolvedValue({ value: true }),
         resumeRecording: jest.fn().mockResolvedValue({ value: true }),
         getCurrentStatus: jest.fn().mockResolvedValue({ status: 'NONE' }),
+        getCurrentAmplitude: jest.fn().mockResolvedValue({ value: 0.5 }),
         ...overrides,
     };
 };
@@ -39,6 +40,7 @@ describe('VoiceRecorderService', () => {
         await service.pauseRecording();
         await service.resumeRecording();
         await service.getCurrentStatus();
+        await service.getCurrentAmplitude();
 
         expect(platform.canDeviceVoiceRecord).toHaveBeenCalledTimes(1);
         expect(platform.hasAudioRecordingPermission).toHaveBeenCalledTimes(1);
@@ -47,6 +49,7 @@ describe('VoiceRecorderService', () => {
         expect(platform.pauseRecording).toHaveBeenCalledTimes(1);
         expect(platform.resumeRecording).toHaveBeenCalledTimes(1);
         expect(platform.getCurrentStatus).toHaveBeenCalledTimes(1);
+        expect(platform.getCurrentAmplitude).toHaveBeenCalledTimes(1);
     });
 
     it('normalizes record data when configured', async () => {

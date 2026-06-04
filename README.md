@@ -106,6 +106,7 @@ section.
 * [`pauseRecording()`](#pauserecording)
 * [`resumeRecording()`](#resumerecording)
 * [`getCurrentStatus()`](#getcurrentstatus)
+* [`getCurrentAmplitude()`](#getcurrentamplitude)
 * [`addListener('voiceRecordingInterrupted', ...)`](#addlistenervoicerecordinginterrupted-)
 * [`addListener('voiceRecordingInterruptionEnded', ...)`](#addlistenervoicerecordinginterruptionended-)
 * [`removeAllListeners()`](#removealllisteners)
@@ -257,6 +258,27 @@ Will resolve with one of the following values:
 --------------------
 
 
+### getCurrentAmplitude()
+
+```typescript
+getCurrentAmplitude() => Promise<CurrentAmplitude>
+```
+
+Gets the current input amplitude.
+
+Returns `{ value: 0 }` when no recording is active. The value is normalized
+to the `[0, 1]` range, but the underlying signal source differs by platform,
+so consumers may need a platform-specific scaling curve for exact parity.
+
+Intended for UI-rate polling. A `60-100ms` interval is a reasonable starting
+point for meters or waveforms; avoid calling it in a tight loop because each
+call crosses the JavaScript/native bridge.
+
+**Returns:** <code>Promise&lt;<a href="#currentamplitude">CurrentAmplitude</a>&gt;</code>
+
+--------------------
+
+
 ### addListener('voiceRecordingInterrupted', ...)
 
 ```typescript
@@ -345,6 +367,15 @@ Interface representing the current status of the voice recorder.
 | Prop         | Type                                                            | Description                                                                                                                 |
 | ------------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | **`status`** | <code>'NONE' \| 'RECORDING' \| 'PAUSED' \| 'INTERRUPTED'</code> | The current status of the recorder, which can be one of the following values: 'RECORDING', 'PAUSED', 'INTERRUPTED', 'NONE'. |
+
+
+#### CurrentAmplitude
+
+Interface representing the current input amplitude.
+
+| Prop        | Type                | Description                                                   |
+| ----------- | ------------------- | ------------------------------------------------------------- |
+| **`value`** | <code>number</code> | The current input amplitude normalized to the `[0, 1]` range. |
 
 
 #### PluginListenerHandle

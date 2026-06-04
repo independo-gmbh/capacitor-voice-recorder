@@ -18,6 +18,9 @@ import java.util.regex.Pattern;
 /** MediaRecorder wrapper that manages audio focus and interruptions. */
 public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListener, RecorderAdapter {
 
+    /** Maximum amplitude value reported by Android MediaRecorder.getMaxAmplitude(). */
+    private static final double MAX_MEDIA_RECORDER_AMPLITUDE = 32767.0;
+
     interface MediaRecorderFactory {
         MediaRecorder create();
     }
@@ -307,6 +310,19 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         return currentRecordingStatus;
     }
 
+    /** Returns the current input amplitude normalized to [0, 1]. */
+    public double getCurrentAmplitude() {
+        if (currentRecordingStatus != CurrentRecordingStatus.RECORDING || mediaRecorder == null) {
+            return 0;
+        }
+
+        try {
+            return clampAmplitude(mediaRecorder.getMaxAmplitude() / MAX_MEDIA_RECORDER_AMPLITUDE);
+        } catch (RuntimeException ignore) {
+            return 0;
+        }
+    }
+
     /** Deletes the output file from disk. */
     public boolean deleteOutputFile() {
         return outputFile.delete();
@@ -358,6 +374,14 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         } else {
             audioManager.abandonAudioFocus(this);
         }
+    }
+
+    /** Clamps platform-specific amplitude calculations into the public range. */
+    private static double clampAmplitude(double value) {
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
+            return 0;
+        }
+        return Math.min(1, Math.max(0, value));
     }
 
     /** Handles audio focus changes as recording interruptions. */
