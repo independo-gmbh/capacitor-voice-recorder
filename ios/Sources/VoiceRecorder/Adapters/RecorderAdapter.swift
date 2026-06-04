@@ -19,6 +19,8 @@ protocol RecorderAdapter: AnyObject {
     func resumeRecording() -> Bool
     /// Returns the current recording status.
     func getCurrentStatus() -> CurrentRecordingStatus
+    /// Returns the current input amplitude normalized to [0, 1].
+    func getCurrentAmplitude() -> Double
     /// Returns the output file for the current session.
     func getOutputFile() -> URL
 }

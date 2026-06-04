@@ -3,6 +3,7 @@ import { Capacitor, WebPlugin } from '@capacitor/core';
 import { VoiceRecorderWebAdapter } from './adapters/VoiceRecorderWebAdapter';
 import { getResponseFormatFromConfig } from './core/response-format';
 import type {
+  CurrentAmplitude,
   CurrentRecordingStatus,
   GenericResponse,
   RecordingData,
@@ -61,5 +62,10 @@ export class VoiceRecorderWeb extends WebPlugin implements VoiceRecorderPlugin {
   /** Returns the current recording state. */
   public getCurrentStatus(): Promise<CurrentRecordingStatus> {
     return this.service.getCurrentStatus();
+  }
+
+  /** Returns the current input amplitude. */
+  public getCurrentAmplitude(): Promise<CurrentAmplitude> {
+    return this.service.getCurrentAmplitude();
   }
 }

@@ -89,6 +89,16 @@ export interface CurrentRecordingStatus {
 }
 
 /**
+ * Interface representing the current input amplitude.
+ */
+export interface CurrentAmplitude {
+    /**
+     * The current input amplitude normalized to the `[0, 1]` range.
+     */
+    value: number;
+}
+
+/**
  * Event payload for voiceRecordingInterrupted event (empty - no data).
  */
 export type VoiceRecordingInterruptedEvent = Record<string, never>;
@@ -187,6 +197,21 @@ export interface VoiceRecorderPlugin {
      * @throws Error if the status cannot be fetched.
      */
     getCurrentStatus(): Promise<CurrentRecordingStatus>;
+
+    /**
+     * Gets the current input amplitude.
+     *
+     * Returns `{ value: 0 }` when no recording is active. The value is normalized
+     * to the `[0, 1]` range, but the underlying signal source differs by platform,
+     * so consumers may need a platform-specific scaling curve for exact parity.
+     *
+     * Intended for UI-rate polling. A `60-100ms` interval is a reasonable starting
+     * point for meters or waveforms; avoid calling it in a tight loop because each
+     * call crosses the JavaScript/native bridge.
+     *
+     * @returns A promise that resolves to a CurrentAmplitude.
+     */
+    getCurrentAmplitude(): Promise<CurrentAmplitude>;
 
     /**
      * Listen for audio recording interruptions (e.g., phone calls, other apps using microphone).

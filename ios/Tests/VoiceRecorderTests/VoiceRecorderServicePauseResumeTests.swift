@@ -101,4 +101,33 @@ final class VoiceRecorderServicePauseResumeTests: XCTestCase {
 
         XCTAssertEqual(service.getCurrentStatus(), .RECORDING)
     }
+
+    func testGetCurrentAmplitudeReturnsZeroWhenNotStarted() {
+        let platform = VoiceRecorderServiceFixtures.FakePlatform()
+        let recorder = VoiceRecorderServiceFixtures.FakeRecorder()
+        let service = VoiceRecorderServiceFixtures.makeService(
+            platform: platform,
+            recorder: recorder,
+            permissionGranted: true
+        )
+
+        XCTAssertEqual(service.getCurrentAmplitude(), 0)
+    }
+
+    func testGetCurrentAmplitudeReturnsRecorderAmplitude() throws {
+        let platform = VoiceRecorderServiceFixtures.FakePlatform()
+        let recorder = VoiceRecorderServiceFixtures.FakeRecorder()
+        recorder.amplitude = 0.42
+        let service = VoiceRecorderServiceFixtures.makeService(
+            platform: platform,
+            recorder: recorder,
+            permissionGranted: true
+        )
+
+        try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil),
+                                   onInterruptionBegan: {},
+                                   onInterruptionEnded: {})
+
+        XCTAssertEqual(service.getCurrentAmplitude(), 0.42)
+    }
 }

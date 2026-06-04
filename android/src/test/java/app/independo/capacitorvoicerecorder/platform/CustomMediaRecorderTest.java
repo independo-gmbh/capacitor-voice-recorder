@@ -18,6 +18,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class CustomMediaRecorderTest {
     @Rule
@@ -208,6 +209,87 @@ public class CustomMediaRecorderTest {
             fail("Expected NotSupportedOsVersion");
         } catch (NotSupportedOsVersion ignored) {
         }
+    }
+
+    @Test
+    public void getCurrentAmplitudeReturnsZeroWhenNotRecording() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-amplitude-idle");
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest
+        );
+
+        assertEquals(0, recorder.getCurrentAmplitude(), 0);
+    }
+
+    @Test
+    public void getCurrentAmplitudeNormalizesMaxAmplitude() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        when(mediaRecorder.getMaxAmplitude()).thenReturn(16384);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-amplitude");
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest
+        );
+
+        recorder.startRecording();
+
+        assertEquals(16384 / 32767.0, recorder.getCurrentAmplitude(), 0.0001);
+    }
+
+    @Test
+    public void getCurrentAmplitudeClampsAboveMaximum() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        when(mediaRecorder.getMaxAmplitude()).thenReturn(40000);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-amplitude-clamp");
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest
+        );
+
+        recorder.startRecording();
+
+        assertEquals(1, recorder.getCurrentAmplitude(), 0);
+    }
+
+    @Test
+    public void getCurrentAmplitudeReturnsZeroWhenRecorderThrows() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        when(mediaRecorder.getMaxAmplitude()).thenThrow(new RuntimeException("metering failed"));
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-amplitude-throws");
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest
+        );
+
+        recorder.startRecording();
+
+        assertEquals(0, recorder.getCurrentAmplitude(), 0);
     }
 
     @Test

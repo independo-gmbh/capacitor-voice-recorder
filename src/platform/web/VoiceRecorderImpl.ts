@@ -3,6 +3,7 @@ import write_blob from 'capacitor-blob-writer';
 
 import type {
     Base64String,
+    CurrentAmplitude,
     CurrentRecordingStatus,
     GenericResponse,
     RecordingData,
@@ -81,6 +82,14 @@ export class VoiceRecorderImpl {
     private static readonly DEFAULT_REQUIRE_PLAYBACK_SUPPORT = true;
     /** Active MediaRecorder instance, if recording. */
     private mediaRecorder: MediaRecorder | null = null;
+    /** AudioContext used for live amplitude metering. */
+    private audioContext: AudioContext | null = null;
+    /** Web Audio analyser used to sample the active input stream. */
+    private amplitudeAnalyser: AnalyserNode | null = null;
+    /** Source node that keeps the input stream connected to the analyser. */
+    private amplitudeSource: MediaStreamAudioSourceNode | null = null;
+    /** Reusable buffer for analyser time-domain samples. */
+    private amplitudeSamples: Uint8Array<ArrayBuffer> | null = null;
     /** Collected data chunks from MediaRecorder. */
     private chunks: any[] = [];
     /** Promise resolved when the recorder stops and payload is ready. */
@@ -224,6 +233,24 @@ export class VoiceRecorderImpl {
         }
     }
 
+    /** Returns the current input amplitude normalized to the [0, 1] range. */
+    public getCurrentAmplitude(): Promise<CurrentAmplitude> {
+        if (this.mediaRecorder?.state !== 'recording' || this.amplitudeAnalyser == null || this.amplitudeSamples == null) {
+            return Promise.resolve({value: 0});
+        }
+
+        this.amplitudeAnalyser.getByteTimeDomainData(this.amplitudeSamples);
+        let sumOfSquares = 0;
+        for (const sample of this.amplitudeSamples) {
+            const centered = (sample - 128) / 128;
+            sumOfSquares += centered * centered;
+        }
+
+        return Promise.resolve({
+            value: VoiceRecorderImpl.clampAmplitude(Math.sqrt(sumOfSquares / this.amplitudeSamples.length)),
+        });
+    }
+
     /**
      * Returns the first MIME type (key of {@link POSSIBLE_MIME_TYPES}) that the current
      * environment reports as supported for recording via `MediaRecorder.isTypeSupported()`,
@@ -310,6 +337,7 @@ export class VoiceRecorderImpl {
             }
 
             this.mediaRecorder = new MediaRecorder(stream, {mimeType});
+            this.startAmplitudeMeter(stream);
             this.mediaRecorder.onerror = () => {
                 this.prepareInstanceForNextOperation();
                 reject(failedToRecordError());
@@ -381,6 +409,35 @@ export class VoiceRecorderImpl {
         });
     }
 
+    /** Connects the recording stream to a lightweight Web Audio analyser for amplitude polling. */
+    private startAmplitudeMeter(stream: MediaStream): void {
+        try {
+            const AudioContextConstructor =
+                window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+            if (AudioContextConstructor == null) {
+                return;
+            }
+
+            this.audioContext = new AudioContextConstructor();
+            this.amplitudeSource = this.audioContext.createMediaStreamSource(stream);
+            this.amplitudeAnalyser = this.audioContext.createAnalyser();
+            this.amplitudeAnalyser.fftSize = 2048;
+            this.amplitudeSamples = new Uint8Array(this.amplitudeAnalyser.fftSize);
+            this.amplitudeSource.connect(this.amplitudeAnalyser);
+        } catch (ignore) {
+            this.audioContext = null;
+            this.amplitudeAnalyser = null;
+            this.amplitudeSource = null;
+            this.amplitudeSamples = null;
+        }
+    }
+
+    /** Clamps platform-specific amplitude calculations into the public range. */
+    private static clampAmplitude(value: number): number {
+        if (!Number.isFinite(value)) return 0;
+        return Math.min(1, Math.max(0, value));
+    }
+
     /** Resets state for the next recording attempt. */
     private prepareInstanceForNextOperation(): void {
         if (this.mediaRecorder != null && this.mediaRecorder.state === 'recording') {
@@ -390,6 +447,20 @@ export class VoiceRecorderImpl {
                 console.warn('Failed to stop recording during cleanup');
             }
         }
+        if (this.amplitudeSource != null) {
+            try {
+                this.amplitudeSource.disconnect();
+            } catch (ignore) {
+                // The node may already be disconnected during recorder cleanup.
+            }
+        }
+        if (this.audioContext != null && this.audioContext.state !== 'closed') {
+            void this.audioContext.close().catch(() => undefined);
+        }
+        this.audioContext = null;
+        this.amplitudeAnalyser = null;
+        this.amplitudeSource = null;
+        this.amplitudeSamples = null;
         this.pendingResult = neverResolvingPromise();
         this.mediaRecorder = null;
         this.chunks = [];

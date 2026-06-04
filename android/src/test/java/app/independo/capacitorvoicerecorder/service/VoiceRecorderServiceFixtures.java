@@ -80,6 +80,7 @@ final class VoiceRecorderServiceFixtures {
         boolean pauseThrows = false;
         boolean resumeThrows = false;
         boolean startThrows = false;
+        double amplitude = 0.5;
         Runnable onInterruptionBegan;
         Runnable onInterruptionEnded;
 
@@ -127,6 +128,11 @@ final class VoiceRecorderServiceFixtures {
         @Override
         public CurrentRecordingStatus getCurrentStatus() {
             return status;
+        }
+
+        @Override
+        public double getCurrentAmplitude() {
+            return amplitude;
         }
 
         @Override
