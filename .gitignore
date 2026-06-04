@@ -1,6 +1,7 @@
 # node files
 dist
 node_modules
+.pnpm-store
 
 # iOS files
 Pods
