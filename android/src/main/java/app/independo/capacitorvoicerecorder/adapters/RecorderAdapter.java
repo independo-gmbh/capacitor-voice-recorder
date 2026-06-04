@@ -28,6 +28,9 @@ public interface RecorderAdapter {
     /** Returns the current recording status. */
     CurrentRecordingStatus getCurrentStatus();
 
+    /** Returns the current input amplitude normalized to [0, 1]. */
+    double getCurrentAmplitude();
+
     /** Returns the output file for the recording. */
     File getOutputFile();
 

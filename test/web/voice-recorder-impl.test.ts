@@ -64,6 +64,39 @@ class MockFileReader {
     }
 }
 
+const mockCloseAudioContext = jest.fn().mockResolvedValue(undefined);
+const mockGetByteTimeDomainData = jest.fn((samples: Uint8Array) => samples.fill(255));
+const mockDisconnectAudioSource = jest.fn();
+const mockCreateMediaStreamSource = jest.fn();
+const mockCreateAnalyser = jest.fn();
+const mockAudioSourceConnect = jest.fn();
+
+class MockAudioContext {
+    public state: AudioContextState = 'running';
+
+    public createMediaStreamSource(): MediaStreamAudioSourceNode {
+        mockCreateMediaStreamSource();
+        const source = {
+            connect: mockAudioSourceConnect,
+            disconnect: mockDisconnectAudioSource,
+        } as any;
+        return source;
+    }
+
+    public createAnalyser(): AnalyserNode {
+        mockCreateAnalyser();
+        return {
+            fftSize: 2048,
+            getByteTimeDomainData: mockGetByteTimeDomainData,
+        } as any;
+    }
+
+    public close(): Promise<void> {
+        this.state = 'closed';
+        return mockCloseAudioContext();
+    }
+}
+
 const setNavigatorMediaDevices = (value: any) => {
     Object.defineProperty(navigator, 'mediaDevices', {
         value,
@@ -301,11 +334,19 @@ describe('VoiceRecorderImpl recording flow', () => {
     const originalFileReader = (global as any).FileReader;
     const originalMediaDevices = (navigator as any).mediaDevices;
     const originalPermissions = (navigator as any).permissions;
+    const originalAudioContext = (window as any).AudioContext;
     let canPlayTypeSpy: jest.SpyInstance | undefined;
 
     beforeEach(() => {
         (global as any).MediaRecorder = MockMediaRecorder as any;
         (global as any).FileReader = MockFileReader;
+        (window as any).AudioContext = MockAudioContext;
+        mockCloseAudioContext.mockClear();
+        mockGetByteTimeDomainData.mockClear();
+        mockDisconnectAudioSource.mockClear();
+        mockCreateMediaStreamSource.mockClear();
+        mockCreateAnalyser.mockClear();
+        mockAudioSourceConnect.mockClear();
         setNavigatorPermissions({ query: jest.fn().mockResolvedValue({ state: 'granted' }) });
         setNavigatorMediaDevices({ getUserMedia: jest.fn().mockResolvedValue(createMockStream()) });
         if (
@@ -319,6 +360,7 @@ describe('VoiceRecorderImpl recording flow', () => {
     afterEach(() => {
         (global as any).MediaRecorder = originalMediaRecorder;
         (global as any).FileReader = originalFileReader;
+        (window as any).AudioContext = originalAudioContext;
         setNavigatorMediaDevices(originalMediaDevices);
         setNavigatorPermissions(originalPermissions);
         canPlayTypeSpy?.mockRestore();
@@ -347,6 +389,71 @@ describe('VoiceRecorderImpl recording flow', () => {
         expect(data.value.uri).toBeUndefined();
 
         expect(await recorder.getCurrentStatus()).toEqual({ status: 'NONE' });
+    });
+
+    it('returns normalized current amplitude while recording and zero otherwise', async () => {
+        const recorder = new VoiceRecorderImpl();
+
+        expect(await recorder.getCurrentAmplitude()).toEqual({ value: 0 });
+
+        await recorder.startRecording();
+        const amplitude = await recorder.getCurrentAmplitude();
+
+        expect(amplitude.value).toBeGreaterThan(0);
+        expect(amplitude.value).toBeLessThanOrEqual(1);
+        expect(mockGetByteTimeDomainData).toHaveBeenCalledTimes(1);
+
+        await recorder.pauseRecording();
+        expect(await recorder.getCurrentAmplitude()).toEqual({ value: 0 });
+
+        await recorder.resumeRecording();
+        await recorder.stopRecording();
+        expect(await recorder.getCurrentAmplitude()).toEqual({ value: 0 });
+        expect(mockDisconnectAudioSource).toHaveBeenCalled();
+        expect(mockCloseAudioContext).toHaveBeenCalled();
+    });
+
+    it('returns zero amplitude when Web Audio is unavailable', async () => {
+        (window as any).AudioContext = undefined;
+        (window as any).webkitAudioContext = undefined;
+        const recorder = new VoiceRecorderImpl();
+
+        await recorder.startRecording();
+
+        expect(await recorder.getCurrentAmplitude()).toEqual({ value: 0 });
+        expect(mockCreateMediaStreamSource).not.toHaveBeenCalled();
+
+        await recorder.stopRecording();
+    });
+
+    it('keeps recording when Web Audio metering setup fails', async () => {
+        class ThrowingAudioContext extends MockAudioContext {
+            public createMediaStreamSource(): MediaStreamAudioSourceNode {
+                throw new Error('metering failed');
+            }
+        }
+        (window as any).AudioContext = ThrowingAudioContext;
+        const recorder = new VoiceRecorderImpl();
+
+        await recorder.startRecording();
+
+        expect(await recorder.getCurrentStatus()).toEqual({ status: 'RECORDING' });
+        expect(await recorder.getCurrentAmplitude()).toEqual({ value: 0 });
+
+        await recorder.stopRecording();
+    });
+
+    it('ignores source disconnect failures during cleanup', async () => {
+        mockDisconnectAudioSource.mockImplementationOnce(() => {
+            throw new Error('already disconnected');
+        });
+        const recorder = new VoiceRecorderImpl();
+
+        await recorder.startRecording();
+        await recorder.stopRecording();
+
+        expect(mockDisconnectAudioSource).toHaveBeenCalled();
+        expect(mockCloseAudioContext).toHaveBeenCalled();
     });
 
     it('throws when starting while already recording', async () => {

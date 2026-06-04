@@ -131,6 +131,12 @@ public class VoiceRecorder extends Plugin {
         call.resolve(ResponseGenerator.statusResponse(service.getCurrentStatus()));
     }
 
+    /** Returns the current input amplitude. */
+    @PluginMethod
+    public void getCurrentAmplitude(PluginCall call) {
+        call.resolve(ResponseGenerator.dataResponse(service.getCurrentAmplitude()));
+    }
+
     /** Checks whether the app has the RECORD_AUDIO permission. */
     private boolean doesUserGaveAudioRecordingPermission() {
         return getPermissionState(VoiceRecorder.RECORD_AUDIO_ALIAS).equals(PermissionState.GRANTED);

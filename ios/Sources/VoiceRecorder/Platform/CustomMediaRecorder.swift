@@ -10,10 +10,13 @@ protocol AudioSessionProtocol: AnyObject {
 }
 
 protocol AudioRecorderProtocol: AnyObject {
+    var isMeteringEnabled: Bool { get set }
     @discardableResult
     func record() -> Bool
     func stop()
     func pause()
+    func updateMeters()
+    func averagePower(forChannel channelNumber: Int) -> Float
 }
 
 typealias AudioRecorderFactory = (_ url: URL, _ settings: [String: Any]) throws -> AudioRecorderProtocol
@@ -102,6 +105,7 @@ class CustomMediaRecorder: RecorderAdapter {
             )
             audioFileSegments = [baseAudioFilePath]
             audioRecorder = try audioRecorderFactory(baseAudioFilePath, settings)
+            audioRecorder.isMeteringEnabled = true
             setupInterruptionHandling()
             audioRecorder.record()
             status = CurrentRecordingStatus.RECORDING
@@ -195,6 +199,7 @@ class CustomMediaRecorder: RecorderAdapter {
                         "recording-\(timestamp)-segment-\(segmentNumber).\(m4aFileExtension)"
                     )
                     audioRecorder = try audioRecorderFactory(segmentPath, settings)
+                    audioRecorder.isMeteringEnabled = true
                     audioFileSegments.append(segmentPath)
                 }
                 audioRecorder.record()
@@ -214,6 +219,28 @@ class CustomMediaRecorder: RecorderAdapter {
     /// Returns the current recording status.
     public func getCurrentStatus() -> CurrentRecordingStatus {
         return status
+    }
+
+    /// Returns the current input amplitude normalized to [0, 1].
+    public func getCurrentAmplitude() -> Double {
+        guard status == CurrentRecordingStatus.RECORDING, let audioRecorder = audioRecorder else {
+            return 0
+        }
+
+        audioRecorder.updateMeters()
+        let power = audioRecorder.averagePower(forChannel: 0)
+        if power <= -160 {
+            return 0
+        }
+        return clampAmplitude(pow(10, Double(power) / 20))
+    }
+
+    /// Clamps platform-specific amplitude calculations into the public range.
+    private func clampAmplitude(_ value: Double) -> Double {
+        if !value.isFinite {
+            return 0
+        }
+        return min(1, max(0, value))
     }
 
     /// Registers for interruption notifications.

@@ -1,4 +1,5 @@
 import type {
+    CurrentAmplitude,
     CurrentRecordingStatus,
     GenericResponse,
     RecordingData,
@@ -50,5 +51,10 @@ export class VoiceRecorderWebAdapter implements VoiceRecorderPlatform {
     /** Returns the current recording state. */
     public getCurrentStatus(): Promise<CurrentRecordingStatus> {
         return this.voiceRecorderImpl.getCurrentStatus();
+    }
+
+    /** Returns the current input amplitude. */
+    public getCurrentAmplitude(): Promise<CurrentAmplitude> {
+        return this.voiceRecorderImpl.getCurrentAmplitude();
     }
 }

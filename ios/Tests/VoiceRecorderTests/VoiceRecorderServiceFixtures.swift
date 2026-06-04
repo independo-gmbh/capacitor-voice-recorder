@@ -32,6 +32,7 @@ final class VoiceRecorderServiceFixtures {
         var startSuccess = true
         var pauseResult = true
         var resumeResult = true
+        var amplitude = 0.5
 
         func startRecording(recordOptions: RecordOptions?) -> Bool {
             options = recordOptions
@@ -62,6 +63,10 @@ final class VoiceRecorderServiceFixtures {
 
         func getCurrentStatus() -> CurrentRecordingStatus {
             return status
+        }
+
+        func getCurrentAmplitude() -> Double {
+            return amplitude
         }
 
         func getOutputFile() -> URL {

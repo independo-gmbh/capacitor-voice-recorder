@@ -38,9 +38,12 @@ final class CustomMediaRecorderTests: XCTestCase {
     }
 
     private final class FakeAudioRecorder: AudioRecorderProtocol {
+        var isMeteringEnabled = false
         var recordCallCount = 0
         var stopCallCount = 0
         var pauseCallCount = 0
+        var updateMetersCallCount = 0
+        var averagePower: Float = -6
 
         func record() -> Bool {
             recordCallCount += 1
@@ -53,6 +56,14 @@ final class CustomMediaRecorderTests: XCTestCase {
 
         func pause() {
             pauseCallCount += 1
+        }
+
+        func updateMeters() {
+            updateMetersCallCount += 1
+        }
+
+        func averagePower(forChannel channelNumber: Int) -> Float {
+            return averagePower
         }
     }
 
@@ -105,6 +116,7 @@ final class CustomMediaRecorderTests: XCTestCase {
         XCTAssertEqual(recorder.getCurrentStatus(), .RECORDING)
         XCTAssertEqual(factory.createdRecorders.count, 1)
         XCTAssertEqual(factory.createdRecorders.first?.recordCallCount, 1)
+        XCTAssertEqual(factory.createdRecorders.first?.isMeteringEnabled, true)
         XCTAssertEqual(session.setCategoryCalls.first, .playAndRecord)
         XCTAssertEqual(session.setActiveCalls.first, true)
 
@@ -136,6 +148,58 @@ final class CustomMediaRecorderTests: XCTestCase {
         )
 
         XCTAssertFalse(recorder.pauseRecording())
+    }
+
+    func testGetCurrentAmplitudeReturnsZeroWhenNotRecording() {
+        let recorder = CustomMediaRecorder(
+            audioSessionProvider: { FakeAudioSession() },
+            audioRecorderFactory: AudioRecorderFactorySpy().makeRecorder
+        )
+
+        XCTAssertEqual(recorder.getCurrentAmplitude(), 0)
+    }
+
+    func testGetCurrentAmplitudeUsesAveragePowerWhileRecording() {
+        let session = FakeAudioSession()
+        let factory = AudioRecorderFactorySpy()
+        let recorder = CustomMediaRecorder(
+            audioSessionProvider: { session },
+            audioRecorderFactory: factory.makeRecorder
+        )
+
+        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil)))
+        factory.createdRecorders.first?.averagePower = -6
+
+        XCTAssertEqual(recorder.getCurrentAmplitude(), pow(10, -6.0 / 20.0), accuracy: 0.0001)
+        XCTAssertEqual(factory.createdRecorders.first?.updateMetersCallCount, 1)
+    }
+
+    func testGetCurrentAmplitudeReturnsZeroForSilenceFloor() {
+        let session = FakeAudioSession()
+        let factory = AudioRecorderFactorySpy()
+        let recorder = CustomMediaRecorder(
+            audioSessionProvider: { session },
+            audioRecorderFactory: factory.makeRecorder
+        )
+
+        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil)))
+        factory.createdRecorders.first?.averagePower = -160
+
+        XCTAssertEqual(recorder.getCurrentAmplitude(), 0)
+    }
+
+    func testGetCurrentAmplitudeClampsAboveMaximum() {
+        let session = FakeAudioSession()
+        let factory = AudioRecorderFactorySpy()
+        let recorder = CustomMediaRecorder(
+            audioSessionProvider: { session },
+            audioRecorderFactory: factory.makeRecorder
+        )
+
+        XCTAssertTrue(recorder.startRecording(recordOptions: RecordOptions(directory: nil, subDirectory: nil)))
+        factory.createdRecorders.first?.averagePower = 6
+
+        XCTAssertEqual(recorder.getCurrentAmplitude(), 1)
     }
 
     func testPauseRecordingUpdatesStatusAndCallsPause() {

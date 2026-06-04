@@ -141,4 +141,12 @@ public class VoiceRecorderService {
         }
         return recorder.getCurrentStatus();
     }
+
+    /** Returns the current input amplitude normalized to [0, 1]. */
+    public double getCurrentAmplitude() {
+        if (recorder == null) {
+            return 0;
+        }
+        return recorder.getCurrentAmplitude();
+    }
 }

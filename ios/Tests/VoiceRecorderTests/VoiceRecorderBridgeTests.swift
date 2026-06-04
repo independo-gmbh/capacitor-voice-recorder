@@ -264,4 +264,16 @@ final class VoiceRecorderBridgeTests: XCTestCase {
         let statusPayload = statusCall.resolvedData?["status"] as? String
         XCTAssertEqual(statusPayload, CurrentRecordingStatus.RECORDING.rawValue)
     }
+
+    func testGetCurrentAmplitudeResolvesValue() {
+        let (plugin, _, recorder) = makePlugin()
+        recorder.amplitude = 0.42
+        let startCall = PluginCallSpy()
+        plugin.startRecording(startCall.call)
+        let amplitudeCall = PluginCallSpy()
+
+        plugin.getCurrentAmplitude(amplitudeCall.call)
+
+        XCTAssertEqual(amplitudeCall.resolvedData?["value"] as? Double, 0.42)
+    }
 }

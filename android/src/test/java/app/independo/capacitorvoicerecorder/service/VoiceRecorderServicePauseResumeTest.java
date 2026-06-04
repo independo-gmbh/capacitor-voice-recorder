@@ -103,4 +103,25 @@ public class VoiceRecorderServicePauseResumeTest {
 
         assertEquals(CurrentRecordingStatus.NONE, service.getCurrentStatus());
     }
+
+    @Test
+    public void getCurrentAmplitudeReturnsZeroWhenIdle() {
+        VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(
+            VoiceRecorderServiceFixtures.createPlatform(),
+            () -> true
+        );
+
+        assertEquals(0, service.getCurrentAmplitude(), 0);
+    }
+
+    @Test
+    public void getCurrentAmplitudeReturnsRecorderAmplitude() throws Exception {
+        VoiceRecorderServiceFixtures.FakePlatform platform = VoiceRecorderServiceFixtures.createPlatform();
+        platform.recorder.amplitude = 0.42;
+        VoiceRecorderService service = VoiceRecorderServiceFixtures.createService(platform, () -> true);
+
+        service.startRecording(new RecordOptions(null, null), () -> {}, () -> {});
+
+        assertEquals(0.42, service.getCurrentAmplitude(), 0.0001);
+    }
 }

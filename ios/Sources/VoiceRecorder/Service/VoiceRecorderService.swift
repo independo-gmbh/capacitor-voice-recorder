@@ -130,4 +130,12 @@ final class VoiceRecorderService {
         }
         return recorder.getCurrentStatus()
     }
+
+    /// Returns the current input amplitude normalized to [0, 1].
+    func getCurrentAmplitude() -> Double {
+        guard let recorder = recorder else {
+            return 0
+        }
+        return recorder.getCurrentAmplitude()
+    }
 }
