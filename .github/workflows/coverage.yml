@@ -19,7 +19,7 @@ jobs:
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
@@ -47,7 +47,7 @@ jobs:
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
@@ -85,7 +85,7 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false

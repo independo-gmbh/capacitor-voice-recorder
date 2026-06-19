@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 30
     name: "Linting"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: pnpm/action-setup@v6
@@ -38,7 +38,7 @@ jobs:
     needs:
       - lint
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
@@ -57,7 +57,7 @@ jobs:
     needs:
       - lint
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
@@ -86,7 +86,7 @@ jobs:
       - lint
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
@@ -107,7 +107,7 @@ jobs:
       - test_android
       - test_ios
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
@@ -129,7 +129,7 @@ jobs:
       - test_ios
     steps:
       - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
@@ -149,7 +149,7 @@ jobs:
       - lint
       - test_android
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
@@ -178,7 +178,7 @@ jobs:
       - lint
       - test_web
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
@@ -200,7 +200,7 @@ jobs:
       - verify-android
       - build-example
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
@@ -224,7 +224,7 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
