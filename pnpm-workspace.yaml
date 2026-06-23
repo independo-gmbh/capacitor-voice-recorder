@@ -3,11 +3,11 @@ packages:
   - example
 
 catalog:
-  '@capacitor/android': ^8.4.0
-  '@capacitor/cli': ^8.4.0
-  '@capacitor/core': ^8.4.0
+  '@capacitor/android': ^8.4.1
+  '@capacitor/cli': ^8.4.1
+  '@capacitor/core': ^8.4.1
   '@capacitor/docgen': ^0.3.1
-  '@capacitor/ios': ^8.4.0
+  '@capacitor/ios': ^8.4.1
 
 minimumReleaseAge: 1440
 blockExoticSubdeps: true
