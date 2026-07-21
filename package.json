@@ -29,7 +29,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^26.1.0",
     "conventional-changelog-conventionalcommits": "^10.2.1",
-    "eslint": "10.6.0",
+    "eslint": "10.7.0",
     "globals": "17.7.0",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
@@ -38,7 +38,7 @@
     "swiftlint": "^2.0.0",
     "ts-jest": "^29.4.11",
     "typescript": "^5.9.3",
-    "typescript-eslint": "8.63.0"
+    "typescript-eslint": "8.64.0"
   },
   "main": "dist/plugin.cjs.js",
   "files": [
