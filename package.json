@@ -38,7 +38,7 @@
     "swiftlint": "^2.0.0",
     "ts-jest": "^29.4.11",
     "typescript": "^5.9.3",
-    "typescript-eslint": "8.64.0"
+    "typescript-eslint": "8.65.0"
   },
   "main": "dist/plugin.cjs.js",
   "files": [
