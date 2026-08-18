@@ -537,3 +537,5 @@ Thanks to Avihu Harush for the original implementation and community groundwork.
 re-architected for improved performance, reliability, and testability (service/adapters split, contract tests, and a
 normalized response path). The codebase now diverges substantially, which is why this repo left the fork network.
 This plugin is maintained by [Independo GmbH](https://www.independo.app/).
+
+Explore more [open-source tools and research from Independo](https://www.independo.app/open-source).
