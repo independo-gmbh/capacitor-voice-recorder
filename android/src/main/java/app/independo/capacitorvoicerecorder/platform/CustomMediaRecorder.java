@@ -251,24 +251,48 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     private void generateMediaRecorder() throws IOException {
         mediaRecorder = mediaRecorderFactory.create();
 
-        if (true) {
-            if (isUnprocessedSourceSupported()) {
-                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.UNPROCESSED);
-            } else {
-                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
-            }
-            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-            mediaRecorder.setAudioEncodingBitRate(128000);
-            mediaRecorder.setAudioSamplingRate(44100);
-            mediaRecorder.setAudioChannels(1); // added, because we're recording a voice
+        if (isUnprocessedSourceSupported()) {
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.UNPROCESSED);
         } else {
-            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
-            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-            mediaRecorder.setAudioEncodingBitRate(96000);
-            mediaRecorder.setAudioSamplingRate(44100);
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
         }
+
+        // ADTS rather than MPEG_4, deliberately.
+        //
+        // MediaRecorder writes an MPEG-4 file's index (the `moov` atom) at
+        // stop(). If the app is killed mid-recording — the OS reclaiming a
+        // backgrounded app, a WebView crash — the file left on disk contains
+        // audio but no index, and no ordinary decoder will play it. That made
+        // every interrupted recording effectively unrecoverable.
+        //
+        // ADTS is a stream of self-describing frames with nothing written at
+        // the end, so a file that was simply cut off plays fine up to the point
+        // where it stopped. The recording is still incomplete, but the audio
+        // that was captured survives — which is the whole point.
+        //
+        // The audio itself is unchanged: same source, codec, bitrate, sample
+        // rate and channel count as before. Only the container differs. Note
+        // this also makes the `.aac` file extension and the "audio/aac" mime
+        // type this plugin already reports actually correct.
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+
+        // 16 kHz mono, matching what everything downstream actually consumes.
+        //
+        // The backend normalizes every recording to 16 kHz mono WAV
+        // (`ffmpeg -ac 1 -ar 16000`) for Whisper, and once that normalized copy
+        // exists it is also what gets served for playback — so nobody, human or
+        // machine, ever hears the higher rate. Recording at 44.1 kHz only made
+        // the upload bigger.
+        //
+        // The bitrate drops with it: 128 kbps was sized for 44.1 kHz, and at
+        // 16 kHz (8 kHz of bandwidth) it spends most of its bits on nothing.
+        // 48 kbps is comfortable for mono speech at this rate, and makes the
+        // upload roughly 2.5x smaller — which matters, because these go up as
+        // one base64 JSON POST over school Wi-Fi.
+        mediaRecorder.setAudioEncodingBitRate(48000);
+        mediaRecorder.setAudioSamplingRate(16000);
+        mediaRecorder.setAudioChannels(1); // added, because we're recording a voice
 
         setRecorderOutputFile();
         mediaRecorder.prepare();

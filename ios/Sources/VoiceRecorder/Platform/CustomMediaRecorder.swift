@@ -56,10 +56,32 @@ class CustomMediaRecorder: RecorderAdapter {
     var onVolumeChanged: ((Float) -> Void)?
 
     /// Recorder settings used for all segments.
+    ///
+    /// 16 kHz mono at 48 kbps, matching what everything downstream actually
+    /// consumes: the backend normalizes every recording to 16 kHz mono WAV for
+    /// Whisper, and once that normalized copy exists it is also what gets
+    /// served for playback — so nobody, human or machine, ever hears a higher
+    /// rate. Recording at 44.1 kHz only made the upload bigger, and these go up
+    /// as one base64 JSON POST.
+    ///
+    /// `AVEncoderBitRateKey` is set explicitly rather than leaning on
+    /// `AVEncoderAudioQualityKey` alone: the quality key is a hint the encoder
+    /// interprets, not a ceiling.
+    ///
+    /// Caveat: these settings do NOT survive `mergeAudioSegments`. When a
+    /// recording is interrupted it is captured as segments and merged through
+    /// `AVAssetExportSession` with `AVAssetExportPresetAppleM4A`, and that
+    /// preset re-encodes with its own fixed output settings. Interrupted
+    /// recordings therefore still come out at the preset's rate/bitrate.
+    /// Harmless — the backend normalizes them anyway — but it means the size
+    /// win here applies only to uninterrupted recordings. Making it consistent
+    /// would mean replacing the export session with AVAssetReader/AVAssetWriter
+    /// and explicit output settings.
     private let settings: [String: Any] = [
         AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-        AVSampleRateKey: 44100,
+        AVSampleRateKey: 16000,
         AVNumberOfChannelsKey: 1,
+        AVEncoderBitRateKey: 48000,
         AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
     ]
 
