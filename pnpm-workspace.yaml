@@ -20,6 +20,7 @@ trustPolicyExclude:
 strictDepBuilds: true
 
 allowBuilds:
+  '@parcel/watcher': true
   esbuild: true
   swiftlint: true
   unrs-resolver: true
