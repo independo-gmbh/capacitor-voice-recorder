@@ -340,4 +340,34 @@ public class CustomMediaRecorderTest {
         assertTrue(parentDir.exists());
         verify(mediaRecorder).setOutputFile(outputFile.getAbsolutePath());
     }
+
+    /**
+     * `LIBRARY_NO_CLOUD` used to fall through `getDirectory`'s `default ->
+     * null`, and `new File(null, subDirectory)` then threw before a single
+     * byte was recorded. It resolves like `DATA` here (Capacitor documents it
+     * as the app files directory on Android); the iCloud distinction it draws
+     * only exists on iOS.
+     */
+    @Test
+    public void setRecorderOutputFileResolvesLibraryNoCloud() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File filesDir = tempFolder.newFolder("files-no-cloud");
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions("LIBRARY_NO_CLOUD", "/voice-tests/", false),
+            mediaRecorder,
+            audioManager,
+            filesDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest
+        );
+
+        File outputFile = recorder.getOutputFile();
+        File parentDir = outputFile.getParentFile();
+
+        assertEquals("voice-tests", parentDir.getName());
+        assertEquals(filesDir, parentDir.getParentFile());
+        assertTrue(parentDir.exists());
+    }
 }

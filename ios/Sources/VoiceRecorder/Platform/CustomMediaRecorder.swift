@@ -95,21 +95,39 @@ class CustomMediaRecorder: RecorderAdapter {
         self.audioRecorderFactory = audioRecorderFactory
     }
 
+    /// Capacitor's `Directory.LibraryNoCloud`. Unlike every other value it is
+    /// not a bare `SearchPathDirectory`: it is the `NoCloud` subdirectory of
+    /// the Library directory, which is what keeps its contents out of iCloud
+    /// and iTunes backups. `@capacitor/filesystem` resolves it that way, and a
+    /// recording has to land where the Filesystem plugin will later look for
+    /// it -- writing to plain `Library/` (or, as before this, silently falling
+    /// through to `Documents/`) means the file exists but can never be read
+    /// back or uploaded.
+    static let libraryNoCloudDirectory = "LIBRARY_NO_CLOUD"
+
     /// Resolves the directory where audio files should be saved.
     private func getDirectoryToSaveAudioFile() -> URL {
-	if options?.directory != nil,
-	   let directory = getDirectory(directory: options?.directory),
+        if options?.directory != nil,
+           let directory = getDirectory(directory: options?.directory),
            var outputDirURL = FileManager.default.urls(for: directory, in: .userDomainMask).first {
+            if options?.directory == Self.libraryNoCloudDirectory {
+                outputDirURL = outputDirURL.appendingPathComponent("NoCloud", isDirectory: true)
+            }
+
             if let subDirectory = options?.subDirectory?.trimmingCharacters(in: CharacterSet(charactersIn: "/")) {
                 outputDirURL = outputDirURL.appendingPathComponent(subDirectory, isDirectory: true)
+            }
 
-                do {
-                    if !FileManager.default.fileExists(atPath: outputDirURL.path) {
-                        try FileManager.default.createDirectory(at: outputDirURL, withIntermediateDirectories: true)
-                    }
-                } catch {
-                    print("Error creating directory: \(error)")
+            // Unconditionally, where it used to run only for a subdirectory:
+            // `Documents/` and `Library/` always exist, but `Library/NoCloud`
+            // does not until something creates it, and `AVAudioRecorder` will
+            // not create it for us.
+            do {
+                if !FileManager.default.fileExists(atPath: outputDirURL.path) {
+                    try FileManager.default.createDirectory(at: outputDirURL, withIntermediateDirectories: true)
                 }
+            } catch {
+                print("Error creating directory: \(error)")
             }
 
             return outputDirURL
@@ -243,7 +261,7 @@ class CustomMediaRecorder: RecorderAdapter {
             switch directory {
             case "CACHE":
                 return .cachesDirectory
-            case "LIBRARY":
+            case "LIBRARY", Self.libraryNoCloudDirectory:
                 return .libraryDirectory
             default:
                 return .documentDirectory

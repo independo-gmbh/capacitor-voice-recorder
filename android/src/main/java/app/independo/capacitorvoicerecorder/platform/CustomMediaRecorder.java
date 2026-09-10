@@ -332,7 +332,13 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     private File getDirectory(String directory) {
         return switch (directory) {
             case "DOCUMENTS" -> directoryProvider.getDocumentsDirectory();
-            case "DATA", "LIBRARY" -> directoryProvider.getFilesDir(context);
+            // `LIBRARY_NO_CLOUD` only means something on iOS, where it keeps
+            // files out of iCloud backups. Capacitor documents it as the plain
+            // app files directory on Android, so it maps here exactly like
+            // `DATA` -- what matters is that it resolves at all, since the
+            // caller reads these files back through `@capacitor/filesystem`
+            // using the same constant.
+            case "DATA", "LIBRARY", "LIBRARY_NO_CLOUD" -> directoryProvider.getFilesDir(context);
             case "CACHE" -> directoryProvider.getCacheDir(context);
             case "EXTERNAL" -> directoryProvider.getExternalFilesDir(context);
             case "EXTERNAL_STORAGE" -> directoryProvider.getExternalStorageDirectory();

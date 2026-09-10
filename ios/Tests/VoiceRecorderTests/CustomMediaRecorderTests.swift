@@ -95,8 +95,41 @@ final class CustomMediaRecorderTests: XCTestCase {
 
         XCTAssertEqual(recorder.getDirectory(directory: "CACHE"), .cachesDirectory)
         XCTAssertEqual(recorder.getDirectory(directory: "LIBRARY"), .libraryDirectory)
+        XCTAssertEqual(recorder.getDirectory(directory: "LIBRARY_NO_CLOUD"), .libraryDirectory)
         XCTAssertEqual(recorder.getDirectory(directory: "DOCS"), .documentDirectory)
         XCTAssertNil(recorder.getDirectory(directory: nil))
+    }
+
+    /// `LIBRARY_NO_CLOUD` has to land in `Library/NoCloud`, not `Library`:
+    /// that subdirectory is what keeps the recording out of iCloud backups,
+    /// and it is where `@capacitor/filesystem` looks when the app reads the
+    /// file back to upload it. Landing one directory too high writes a file
+    /// nobody ever finds again.
+    func testStartRecordingPutsLibraryNoCloudInNoCloudSubdirectory() {
+        let session = FakeAudioSession(category: .soloAmbient)
+        let factory = AudioRecorderFactorySpy()
+        let recorder = CustomMediaRecorder(
+            audioSessionProvider: { session },
+            audioRecorderFactory: factory.makeRecorder
+        )
+        let options = RecordOptions(
+            directory: "LIBRARY_NO_CLOUD",
+            subDirectory: "voice-tests/",
+            volumeMetering: false
+        )
+
+        XCTAssertTrue(recorder.startRecording(recordOptions: options))
+
+        let expectedDirectory = FileManager.default
+            .urls(for: .libraryDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("NoCloud", isDirectory: true)
+            .appendingPathComponent("voice-tests", isDirectory: true)
+
+        let outputFile = recorder.getOutputFile()
+        XCTAssertTrue(outputFile.path.hasPrefix(expectedDirectory.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: expectedDirectory.path))
+
+        try? FileManager.default.removeItem(at: expectedDirectory)
     }
 
     func testStartRecordingUsesDirectoryAndStartsRecorder() {
