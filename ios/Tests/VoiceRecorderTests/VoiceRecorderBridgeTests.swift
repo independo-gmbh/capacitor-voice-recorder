@@ -262,4 +262,36 @@ final class VoiceRecorderBridgeTests: XCTestCase {
         let statusPayload = statusCall.resolvedData?["status"] as? String
         XCTAssertEqual(statusPayload, CurrentRecordingStatus.RECORDING.rawValue)
     }
+
+    /// What the JS side can actually call.
+    ///
+    /// `pluginMethods` is written out by hand, so a method can exist on the
+    /// bridge, compile, and still be unreachable — the call then fails only at
+    /// runtime, on a device, with "not implemented on ios". Android has the same
+    /// hole for the opposite reason (there the list is implicit, from
+    /// `@PluginMethod`), and that is how `simulateRecordingFailure` once shipped
+    /// callable on one platform and not the other.
+    ///
+    /// A literal list rather than a count, so a renamed method breaks this too
+    /// and the diff is the API change.
+    func testEveryMethodTheJsSideCallsIsRegisteredOnTheBridge() {
+        // `name` comes from Objective-C, so it arrives implicitly unwrapped;
+        // a closure rather than a key path keeps the element type plainly String.
+        let registered = Set(TestVoiceRecorder().pluginMethods.map { $0.name })
+
+        XCTAssertEqual(
+            registered,
+            [
+                "canDeviceVoiceRecord",
+                "requestAudioRecordingPermission",
+                "hasAudioRecordingPermission",
+                "startRecording",
+                "stopRecording",
+                "pauseRecording",
+                "resumeRecording",
+                "getCurrentStatus",
+                "simulateRecordingFailure",
+            ]
+        )
+    }
 }

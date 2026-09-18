@@ -471,8 +471,14 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     public void startRecording() {
         requestAudioFocus();
         mediaRecorder.start();
-        startVolumeMetering();
+        // Before the metering, not after. `startVolumeMetering` posts its first
+        // tick to the main looper while this runs on Capacitor's background
+        // thread, so that tick can execute before the next line does -- and a
+        // tick that finds a status other than RECORDING drops the loop for good.
+        // That left a recording working perfectly next to a volume meter that
+        // never moved: intermittent, silent, and impossible to guess at.
         currentRecordingStatus = CurrentRecordingStatus.RECORDING;
+        startVolumeMetering();
     }
 
     /** Stops recording and releases audio resources. */
@@ -535,8 +541,9 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         if (currentRecordingStatus == CurrentRecordingStatus.PAUSED || currentRecordingStatus == CurrentRecordingStatus.INTERRUPTED) {
             requestAudioFocus();
             mediaRecorder.resume();
-            startVolumeMetering();
+            // Status first; see `startRecording`.
             currentRecordingStatus = CurrentRecordingStatus.RECORDING;
+            startVolumeMetering();
             return true;
         } else {
             return false;

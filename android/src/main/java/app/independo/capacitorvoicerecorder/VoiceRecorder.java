@@ -139,6 +139,17 @@ public class VoiceRecorder extends Plugin {
         }
     }
 
+    /** Fails the live session on purpose, to rehearse the failure path. */
+    @PluginMethod
+    public void simulateRecordingFailure(PluginCall call) {
+        try {
+            service.simulateRecordingFailure();
+            call.resolve(ResponseGenerator.successResponse());
+        } catch (VoiceRecorderServiceException exception) {
+            call.reject(toLegacyMessage(exception.getCode()), exception.getCode(), exception);
+        }
+    }
+
     /** Returns the current recording status. */
     @PluginMethod
     public void getCurrentStatus(PluginCall call) {

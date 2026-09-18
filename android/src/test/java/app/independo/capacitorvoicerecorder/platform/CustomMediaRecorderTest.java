@@ -57,6 +57,32 @@ public class CustomMediaRecorderTest {
         }
     }
 
+    /**
+     * A handler that runs what it is handed straight away -- which is the main
+     * looper winning the race against the background thread that called
+     * `startRecording`, the worst case for anything that posts before it is
+     * ready to be observed.
+     */
+    private static final class ImmediateHandlerProvider implements CustomMediaRecorder.HandlerProvider {
+        final List<Runnable> reposted = new ArrayList<>();
+
+        @Override
+        public void setupHandler() {}
+
+        @Override
+        public void post(Runnable r) {
+            r.run();
+        }
+
+        @Override
+        public void postDelayed(Runnable r, long d) {
+            reposted.add(r);
+        }
+
+        @Override
+        public void removeCallbacks(Runnable r) {}
+    }
+
     private CustomMediaRecorder createRecorder(
         RecordOptions options,
         MediaRecorder mediaRecorder,
@@ -664,5 +690,67 @@ public class CustomMediaRecorderTest {
         assertEquals(1, failures.size());
         assertEquals(RecordingFailure.INTERRUPTION_FAILED, failures.get(0).code());
         assertEquals(CurrentRecordingStatus.ERROR, recorder.getCurrentStatus());
+    }
+
+    /**
+     * Metering has to survive its own first tick running before `startRecording`
+     * has finished.
+     *
+     * `startVolumeMetering` posts to the main looper while `startRecording` runs
+     * on Capacitor's background thread, so the first tick really can execute
+     * mid-method. It used to land while the status still said NONE, and because
+     * a tick that fails its guard does not reschedule, the loop died right there
+     * -- leaving a recording that worked perfectly next to a volume meter that
+     * never moved. Intermittent, silent, and impossible to guess at from the
+     * dashboard.
+     */
+    @Test
+    public void volumeMeteringSurvivesItsFirstTickRunningBeforeStartReturns() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-metering-start-race");
+        ImmediateHandlerProvider handler = new ImmediateHandlerProvider();
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null, true),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest,
+            handler
+        );
+        when(mediaRecorder.getMaxAmplitude()).thenReturn(8000);
+
+        recorder.startRecording();
+
+        assertEquals("the first tick kept the loop alive", 1, handler.reposted.size());
+    }
+
+    /** The same race on the way back from an interruption. */
+    @Test
+    public void volumeMeteringSurvivesItsFirstTickAfterResuming() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-metering-resume-race");
+        ImmediateHandlerProvider handler = new ImmediateHandlerProvider();
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null, true),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest,
+            handler
+        );
+        when(mediaRecorder.getMaxAmplitude()).thenReturn(8000);
+
+        recorder.startRecording();
+        recorder.pauseRecording();
+        handler.reposted.clear();
+        recorder.resumeRecording();
+
+        assertEquals("the first tick after resuming kept the loop alive", 1, handler.reposted.size());
     }
 }
