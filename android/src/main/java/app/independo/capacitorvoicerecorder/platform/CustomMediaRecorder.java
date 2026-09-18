@@ -166,12 +166,12 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     private final SdkIntProvider sdkIntProvider;
     /** Audio focus request factory for O and above. */
     private final AudioFocusRequestFactory audioFocusRequestFactory;
-    /** Active MediaRecorder instance for the session. */
-    private MediaRecorder mediaRecorder;
+    /** Active MediaRecorder instance for the session. Volatile: read by the volume metering loop on the main thread, written from Capacitor's background thread. */
+    private volatile MediaRecorder mediaRecorder;
     /** Output file for the current recording session. */
     private File outputFile;
-    /** Current session status tracked locally. */
-    private CurrentRecordingStatus currentRecordingStatus = CurrentRecordingStatus.NONE;
+    /** Current session status tracked locally. Volatile: see `mediaRecorder`. */
+    private volatile CurrentRecordingStatus currentRecordingStatus = CurrentRecordingStatus.NONE;
     /** Audio manager for focus changes. */
     private AudioManager audioManager;
     /** Focus request for Android O and above. */
@@ -358,21 +358,43 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         volumeRunnable = new Runnable() {
             @Override
             public void run() {
-                if (mediaRecorder != null && currentRecordingStatus == CurrentRecordingStatus.RECORDING) {
-                    int maxAmplitude = mediaRecorder.getMaxAmplitude();
-                    float rawLinear = (float) maxAmplitude / 32767f;
-
-                    // Consistency check: Same "Knee" logic used in Swift
-                    float targetLevel = calculateVisualLevel(rawLinear);
-
-                    // Low-pass filter for smoothing
-                    lowPassVolume = (0.5f * targetLevel) + (0.5f * lowPassVolume);
-
-                    if (onVolumeChanged != null) {
-                        onVolumeChanged.accept(lowPassVolume);
-                    }
-                    handlerProvider.postDelayed(this, POLL_INTERVAL_MS);
+                // This runs on the main looper, but `stopRecording()` and
+                // `pauseRecording()` run on Capacitor's background thread -- plain
+                // `@PluginMethod`s are dispatched off the main thread. So the
+                // recorder can be stopped, released and nulled at any point,
+                // including between the guard below and the call after it, and
+                // `removeCallbacks()` cannot cancel a tick that is already running.
+                // Read the field once so the check and the use see the same object.
+                MediaRecorder recorder = mediaRecorder;
+                if (recorder == null || currentRecordingStatus != CurrentRecordingStatus.RECORDING) {
+                    return;
                 }
+
+                int maxAmplitude;
+                try {
+                    maxAmplitude = recorder.getMaxAmplitude();
+                } catch (RuntimeException recorderGoneUnderneathUs) {
+                    // Either we lost the race described above, or the system tore
+                    // the session down on its own (another app taking the mic, a
+                    // hardware error) while our status still said RECORDING.
+                    // There is nothing left to meter, so drop the loop rather than
+                    // reschedule it to throw again in POLL_INTERVAL_MS. Metering is
+                    // set up again by startRecording()/resumeRecording().
+                    return;
+                }
+
+                float rawLinear = (float) maxAmplitude / 32767f;
+
+                // Consistency check: Same "Knee" logic used in Swift
+                float targetLevel = calculateVisualLevel(rawLinear);
+
+                // Low-pass filter for smoothing
+                lowPassVolume = (0.5f * targetLevel) + (0.5f * lowPassVolume);
+
+                if (onVolumeChanged != null) {
+                    onVolumeChanged.accept(lowPassVolume);
+                }
+                handlerProvider.postDelayed(this, POLL_INTERVAL_MS);
             }
         };
         handlerProvider.post(volumeRunnable);

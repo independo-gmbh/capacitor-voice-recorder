@@ -9,6 +9,9 @@ import android.os.Looper;
 import app.independo.capacitorvoicerecorder.core.CurrentRecordingStatus;
 import app.independo.capacitorvoicerecorder.core.RecordOptions;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -18,12 +21,39 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class CustomMediaRecorderTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
+
+    /** Captures what the volume metering loop posts, so a tick can be run by hand. */
+    private static final class CapturingHandlerProvider implements CustomMediaRecorder.HandlerProvider {
+        final List<Runnable> posted = new ArrayList<>();
+        final List<Runnable> reposted = new ArrayList<>();
+        final List<Runnable> removed = new ArrayList<>();
+
+        @Override
+        public void setupHandler() {}
+
+        @Override
+        public void post(Runnable r) {
+            posted.add(r);
+        }
+
+        @Override
+        public void postDelayed(Runnable r, long d) {
+            reposted.add(r);
+        }
+
+        @Override
+        public void removeCallbacks(Runnable r) {
+            removed.add(r);
+        }
+    }
 
     private CustomMediaRecorder createRecorder(
         RecordOptions options,
@@ -32,6 +62,18 @@ public class CustomMediaRecorderTest {
         File cacheDir,
         int sdkInt,
         AudioFocusRequest focusRequest
+    ) throws Exception {
+        return createRecorder(options, mediaRecorder, audioManager, cacheDir, sdkInt, focusRequest, null);
+    }
+
+    private CustomMediaRecorder createRecorder(
+        RecordOptions options,
+        MediaRecorder mediaRecorder,
+        AudioManager audioManager,
+        File cacheDir,
+        int sdkInt,
+        AudioFocusRequest focusRequest,
+        CustomMediaRecorder.HandlerProvider handlerProvider
     ) throws Exception {
         Context context = mock(Context.class);
         CustomMediaRecorder.MediaRecorderFactory mediaRecorderFactory = () -> mediaRecorder;
@@ -78,7 +120,7 @@ public class CustomMediaRecorderTest {
             directoryProvider,
             sdkIntProvider,
             audioFocusRequestFactory,
-            fakeHandlerProvider
+            handlerProvider != null ? handlerProvider : fakeHandlerProvider
         );
     }
 
@@ -369,5 +411,99 @@ public class CustomMediaRecorderTest {
         assertEquals("voice-tests", parentDir.getName());
         assertEquals(filesDir, parentDir.getParentFile());
         assertTrue(parentDir.exists());
+    }
+
+    /**
+     * The metering loop runs on the main looper, but `stopRecording()` arrives on
+     * Capacitor's background thread, so the recorder can be stopped and released
+     * between the tick's guard and its `getMaxAmplitude()` call -- and a tick that
+     * is already running cannot be cancelled by `removeCallbacks()`. That lost
+     * race crashed the app with `RuntimeException: getMaxAmplitude failed.`
+     */
+    @Test
+    public void volumeMeteringTickSurvivesRecorderDyingMidTick() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-metering-race");
+        CapturingHandlerProvider handler = new CapturingHandlerProvider();
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null, true),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest,
+            handler
+        );
+        Consumer<Float> onVolumeChanged = mock(Consumer.class);
+        recorder.setOnVolumeChanged(onVolumeChanged);
+
+        recorder.startRecording();
+        assertEquals(1, handler.posted.size());
+
+        when(mediaRecorder.getMaxAmplitude()).thenThrow(new RuntimeException("getMaxAmplitude failed."));
+        handler.posted.get(0).run();
+
+        verify(onVolumeChanged, never()).accept(org.mockito.ArgumentMatchers.anyFloat());
+        assertEquals("a dead recorder must not be polled again", 0, handler.reposted.size());
+    }
+
+    /** A tick still queued after `stopRecording()` must be a no-op, not a null deref. */
+    @Test
+    public void volumeMeteringTickAfterStopIsANoOp() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-metering-after-stop");
+        CapturingHandlerProvider handler = new CapturingHandlerProvider();
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null, true),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest,
+            handler
+        );
+
+        recorder.startRecording();
+        Runnable tick = handler.posted.get(0);
+        recorder.stopRecording();
+
+        tick.run();
+
+        assertEquals(CurrentRecordingStatus.NONE, recorder.getCurrentStatus());
+        assertEquals(0, handler.reposted.size());
+        verify(mediaRecorder, never()).getMaxAmplitude();
+    }
+
+    /** The happy path keeps polling: a healthy tick reports a level and reschedules. */
+    @Test
+    public void volumeMeteringTickReportsLevelAndReschedules() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-metering-ok");
+        CapturingHandlerProvider handler = new CapturingHandlerProvider();
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null, true),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest,
+            handler
+        );
+        List<Float> levels = new ArrayList<>();
+        recorder.setOnVolumeChanged(levels::add);
+
+        recorder.startRecording();
+        when(mediaRecorder.getMaxAmplitude()).thenReturn(16000);
+        handler.posted.get(0).run();
+
+        assertEquals(1, levels.size());
+        assertTrue(levels.get(0) > 0f);
+        assertEquals(1, handler.reposted.size());
     }
 }
