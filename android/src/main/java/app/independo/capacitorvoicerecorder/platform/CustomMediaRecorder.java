@@ -10,6 +10,7 @@ import android.os.Environment;
 import app.independo.capacitorvoicerecorder.adapters.RecorderAdapter;
 import app.independo.capacitorvoicerecorder.core.CurrentRecordingStatus;
 import app.independo.capacitorvoicerecorder.core.RecordOptions;
+import app.independo.capacitorvoicerecorder.core.RecordingFailure;
 import java.io.File;
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -182,6 +183,8 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     private Runnable onInterruptionEnded;
     /** Callback invoked with volume changes. */
     private Consumer<Float> onVolumeChanged;
+    /** Callback invoked when the session dies while running. */
+    private volatile Consumer<RecordingFailure> onRecordingFailed;
 
     private Runnable volumeRunnable;
     private float lowPassVolume = 0.0f;
@@ -234,6 +237,38 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
     /** Sets the callback for real-time volume updates. */
     public void setOnVolumeChanged(Consumer<Float> callback) {
         this.onVolumeChanged = callback;
+    }
+
+    /** Sets the callback invoked when the session dies while running. */
+    public void setOnRecordingFailed(Consumer<RecordingFailure> callback) {
+        this.onRecordingFailed = callback;
+    }
+
+    /**
+     * Give up on this session and say so.
+     *
+     * Reported once: after the first failure the recorder is gone, so everything
+     * that touches it afterwards fails too, and a caller does not need telling
+     * five times. Synchronized because the three things that notice arrive on
+     * different threads -- the metering tick and the focus callback on the main
+     * looper, MediaRecorder's own error callback on whichever thread it pleases.
+     *
+     * Deliberately does NOT release the recorder. The file on disk is the point
+     * of all this, and `stopRecording()` is what collects it; tearing down here
+     * would leave the caller nothing to stop.
+     */
+    private synchronized void fail(String code, String message) {
+        if (currentRecordingStatus == CurrentRecordingStatus.ERROR || currentRecordingStatus == CurrentRecordingStatus.NONE) {
+            return;
+        }
+
+        currentRecordingStatus = CurrentRecordingStatus.ERROR;
+        stopVolumeMetering();
+
+        Consumer<RecordingFailure> callback = onRecordingFailed;
+        if (callback != null) {
+            callback.accept(new RecordingFailure(code, message));
+        }
     }
 
     public boolean isUnprocessedSourceSupported() {
@@ -293,6 +328,17 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         mediaRecorder.setAudioEncodingBitRate(48000);
         mediaRecorder.setAudioSamplingRate(16000);
         mediaRecorder.setAudioChannels(1); // added, because we're recording a voice
+
+        // The one thing that reports a session dying of its own accord. Nothing
+        // set this before, so a media server restart -- which invalidates the
+        // recorder completely -- was entirely invisible: the status stayed
+        // RECORDING and the app went on believing it was recording.
+        mediaRecorder.setOnErrorListener((recorder, what, extra) ->
+            fail(
+                what == MediaRecorder.MEDIA_ERROR_SERVER_DIED ? RecordingFailure.SERVER_DIED : RecordingFailure.UNKNOWN_ERROR,
+                String.format("MediaRecorder error what=%d extra=%d", what, extra)
+            )
+        );
 
         setRecorderOutputFile();
         mediaRecorder.prepare();
@@ -374,12 +420,14 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
                 try {
                     maxAmplitude = recorder.getMaxAmplitude();
                 } catch (RuntimeException recorderGoneUnderneathUs) {
-                    // Either we lost the race described above, or the system tore
-                    // the session down on its own (another app taking the mic, a
-                    // hardware error) while our status still said RECORDING.
-                    // There is nothing left to meter, so drop the loop rather than
-                    // reschedule it to throw again in POLL_INTERVAL_MS. Metering is
-                    // set up again by startRecording()/resumeRecording().
+                    // Either we lost the race described above -- in which case
+                    // the status is about to say NONE and `fail` ignores us -- or
+                    // the system tore the session down on its own (another app
+                    // taking the mic, a hardware error) while our status still
+                    // said RECORDING, and this tick is the only thing that will
+                    // ever notice. Either way stop looping; `fail` decides which
+                    // of the two it was.
+                    fail(RecordingFailure.AMPLITUDE_READ_FAILED, recorderGoneUnderneathUs.getMessage());
                     return;
                 }
 
@@ -495,6 +543,19 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
         }
     }
 
+    /**
+     * Force the live session to fail, exactly as a real failure would.
+     *
+     * For testing the failure path on a real device, where the alternative is
+     * waiting for a media server to die. It is not a simulation of the *report*:
+     * it goes through the same `fail()` as everything else, so the session really
+     * does end up in ERROR with its metering stopped and its file left unfinalized
+     * -- which is the part worth rehearsing.
+     */
+    public void simulateFailure() {
+        fail(RecordingFailure.SIMULATED, "Recording failure simulated on request");
+    }
+
     /** Returns the current recording status. */
     public CurrentRecordingStatus getCurrentStatus() {
         return currentRecordingStatus;
@@ -571,7 +632,13 @@ public class CustomMediaRecorder implements AudioManager.OnAudioFocusChangeListe
                                 onInterruptionBegan.run();
                             }
                         }
-                    } catch (Exception ignore) {
+                    } catch (Exception pauseFailed) {
+                        // Pausing a healthy recorder does not throw, so this is
+                        // a recorder that was already gone before the
+                        // interruption arrived. Swallowing it (as this did) left
+                        // the status at RECORDING and the metering loop running
+                        // against a dead session.
+                        fail(RecordingFailure.INTERRUPTION_FAILED, pauseFailed.getMessage());
                     }
                 }
                 break;

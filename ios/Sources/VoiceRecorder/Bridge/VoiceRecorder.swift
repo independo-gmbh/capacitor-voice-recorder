@@ -22,6 +22,7 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "pauseRecording", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "resumeRecording", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getCurrentStatus", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "simulateRecordingFailure", returnType: CAPPluginReturnPromise),
     ]
 
     /// Service layer that performs recording operations.
@@ -113,6 +114,12 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
                 onVolumeChanged: { [weak self] volume in
                     // volume is a Float between 0.0 and 1.0
                     self?.notifyListeners("volumeChanged", data: ["volume": volume])
+                },
+                onRecordingFailed: { [weak self] failure in
+                    self?.notifyListeners(
+                        "recordingFailed",
+                        data: ["code": failure.code, "message": failure.message ?? ""]
+                    )
                 }
             )
             call.resolve(ResponseGenerator.successResponse())
@@ -186,6 +193,22 @@ public class VoiceRecorder: CAPPlugin, CAPBridgedPlugin {
     }
 
     /// Returns the current recording status.
+    /// Fails the live session on purpose, to rehearse the failure path.
+    @objc func simulateRecordingFailure(_ call: CAPPluginCall) {
+        guard let service = service else {
+            call.reject(Messages.FAILED_TO_RECORD, ErrorCodes.failedToRecord)
+            return
+        }
+        do {
+            try service.simulateRecordingFailure()
+            call.resolve(ResponseGenerator.successResponse())
+        } catch let error as VoiceRecorderServiceError {
+            call.reject(toLegacyMessage(error.code), error.code, error.underlyingError ?? error)
+        } catch {
+            call.reject(Messages.FAILED_TO_RECORD, ErrorCodes.failedToRecord, error)
+        }
+    }
+
     @objc func getCurrentStatus(_ call: CAPPluginCall) {
         let status = service?.getCurrentStatus() ?? .NONE
         call.resolve(ResponseGenerator.statusResponse(status))

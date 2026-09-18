@@ -7,6 +7,7 @@ import app.independo.capacitorvoicerecorder.core.CurrentRecordingStatus;
 import app.independo.capacitorvoicerecorder.core.ErrorCodes;
 import app.independo.capacitorvoicerecorder.core.RecordData;
 import app.independo.capacitorvoicerecorder.core.RecordOptions;
+import app.independo.capacitorvoicerecorder.core.RecordingFailure;
 import app.independo.capacitorvoicerecorder.platform.NotSupportedOsVersion;
 import java.io.File;
 import java.util.function.Consumer;
@@ -41,7 +42,8 @@ public class VoiceRecorderService {
         RecordOptions options,
         Runnable onInterruptionBegan,
         Runnable onInterruptionEnded,
-        Consumer<Float> onVolumeChanged
+        Consumer<Float> onVolumeChanged,
+        Consumer<RecordingFailure> onRecordingFailed
     ) throws VoiceRecorderServiceException {
         if (!platform.canDeviceVoiceRecord()) {
             throw new VoiceRecorderServiceException(ErrorCodes.DEVICE_CANNOT_VOICE_RECORD);
@@ -64,11 +66,20 @@ public class VoiceRecorderService {
             recorder.setOnInterruptionBegan(onInterruptionBegan);
             recorder.setOnInterruptionEnded(onInterruptionEnded);
             recorder.setOnVolumeChanged(onVolumeChanged);
+            recorder.setOnRecordingFailed(onRecordingFailed);
             recorder.startRecording();
         } catch (Exception exp) {
             recorder = null;
             throw new VoiceRecorderServiceException(ErrorCodes.FAILED_TO_RECORD, exp);
         }
+    }
+
+    /** Fails the live session on purpose; see `CustomMediaRecorder.simulateFailure`. */
+    public void simulateRecordingFailure() throws VoiceRecorderServiceException {
+        if (recorder == null) {
+            throw new VoiceRecorderServiceException(ErrorCodes.RECORDING_HAS_NOT_STARTED);
+        }
+        recorder.simulateFailure();
     }
 
     /** Stops the active recording session and returns the payload. */

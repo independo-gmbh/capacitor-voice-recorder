@@ -84,6 +84,7 @@ final class VoiceRecorderServiceFixtures {
         Runnable onInterruptionBegan;
         Runnable onInterruptionEnded;
         java.util.function.Consumer<Float> onVolumeChanged;
+        java.util.function.Consumer<app.independo.capacitorvoicerecorder.core.RecordingFailure> onRecordingFailed;
 
         @Override
         public void setOnInterruptionBegan(Runnable callback) {
@@ -98,6 +99,20 @@ final class VoiceRecorderServiceFixtures {
         @Override
         public void setOnVolumeChanged(java.util.function.Consumer<Float> callback) {
             onVolumeChanged = callback;
+        }
+
+        @Override
+        public void setOnRecordingFailed(
+            java.util.function.Consumer<app.independo.capacitorvoicerecorder.core.RecordingFailure> callback
+        ) {
+            onRecordingFailed = callback;
+        }
+
+        boolean simulateFailureCalled = false;
+
+        @Override
+        public void simulateFailure() {
+            simulateFailureCalled = true;
         }
 
         @Override

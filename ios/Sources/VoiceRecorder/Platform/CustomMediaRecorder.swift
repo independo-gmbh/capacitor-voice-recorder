@@ -16,6 +16,12 @@ protocol AudioRecorderProtocol: AnyObject {
     var isMeteringEnabled: Bool { get set }
     func updateMeters()
     func averagePower(forChannel channelNumber: Int) -> Float
+
+    /// Whether the recorder is still actually capturing. `AVAudioRecorder` sets
+    /// this to false the moment the session is torn down under it -- an encoder
+    /// error, the input taken away -- without telling anyone, so it is the one
+    /// thing we can poll to find out that a recording has died.
+    var isRecording: Bool { get }
 }
 
 typealias AudioRecorderFactory = (_ url: URL, _ settings: [String: Any]) throws -> AudioRecorderProtocol
@@ -54,6 +60,8 @@ class CustomMediaRecorder: RecorderAdapter {
     var onInterruptionEnded: (() -> Void)?
     /// Callback for receiving volume updates.
     var onVolumeChanged: ((Float) -> Void)?
+    /// Callback invoked when the session dies while running.
+    var onRecordingFailed: ((RecordingFailure) -> Void)?
 
     /// Recorder settings used for all segments.
     ///
@@ -163,6 +171,17 @@ class CustomMediaRecorder: RecorderAdapter {
                 return
             }
 
+            // The only thing still touching the recorder once it is running, and
+            // so the only thing that can notice it is no longer running. Nothing
+            // reports this: `AVAudioRecorder` simply stops, and without this
+            // check the status stays RECORDING and the app goes on believing it
+            // is recording. (Detection therefore rides on volume metering being
+            // on, which is how this app always records.)
+            if self.status == CurrentRecordingStatus.RECORDING && !recorder.isRecording {
+                self.fail(RecordingFailure.stoppedUnexpectedly, "AVAudioRecorder stopped without being asked to")
+                return
+            }
+
             recorder.updateMeters()
             let averagePower = recorder.averagePower(forChannel: 0)
 
@@ -183,9 +202,36 @@ class CustomMediaRecorder: RecorderAdapter {
         self.levelTimer = timer
     }
 
+    /// Give up on this session and say so.
+    ///
+    /// Reported once: after the first failure the recorder is gone, so anything
+    /// else that notices does not need to say it again. Deliberately does not
+    /// tear the recorder down -- whatever was captured is on disk, and
+    /// `stopRecording` is what collects it.
+    private func fail(_ code: String, _ message: String?) {
+        guard status != CurrentRecordingStatus.ERROR && status != CurrentRecordingStatus.NONE else {
+            return
+        }
+
+        status = CurrentRecordingStatus.ERROR
+        stopVolumeMetering()
+        onRecordingFailed?(RecordingFailure(code: code, message: message))
+    }
+
     private func stopVolumeMetering() {
         levelTimer?.invalidate()
         levelTimer = nil
+    }
+
+    /// Force the live session to fail, exactly as a real failure would.
+    ///
+    /// For testing the failure path on a real device, where the alternative is
+    /// waiting for a media server to die. It is not a simulation of the
+    /// *report*: it goes through the same `fail()` as everything else, so the
+    /// session really does end up in ERROR with its metering stopped -- which
+    /// is the part worth rehearsing.
+    func simulateFailure() {
+        fail(RecordingFailure.simulated, "Recording failure simulated on request")
     }
 
     /// Starts recording audio and prepares the session.

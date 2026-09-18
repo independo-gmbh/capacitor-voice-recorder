@@ -56,6 +56,8 @@ final class CustomMediaRecorderTests: XCTestCase {
             pauseCallCount += 1
         }
 
+        var isRecording: Bool = true
+
         func updateMeters() {}
 
         func averagePower(forChannel channelNumber: Int) -> Float {

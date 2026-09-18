@@ -36,7 +36,8 @@ final class VoiceRecorderService {
         options: RecordOptions?,
         onInterruptionBegan: @escaping () -> Void,
         onInterruptionEnded: @escaping () -> Void,
-        onVolumeChanged: @escaping (Float) -> Void
+        onVolumeChanged: @escaping (Float) -> Void,
+        onRecordingFailed: @escaping (RecordingFailure) -> Void
     ) throws {
         if !platform.canDeviceVoiceRecord() {
             throw VoiceRecorderServiceError(code: ErrorCodes.deviceCannotVoiceRecord)
@@ -54,6 +55,7 @@ final class VoiceRecorderService {
         nextRecorder.onInterruptionBegan = onInterruptionBegan
         nextRecorder.onInterruptionEnded = onInterruptionEnded
         nextRecorder.onVolumeChanged = onVolumeChanged
+        nextRecorder.onRecordingFailed = onRecordingFailed
         let started = nextRecorder.startRecording(recordOptions: options)
         if !started {
             recorder = nil
@@ -121,6 +123,14 @@ final class VoiceRecorderService {
     }
 
     /// Returns the current recording status.
+    /// Fails the live session on purpose; see `CustomMediaRecorder.simulateFailure`.
+    func simulateRecordingFailure() throws {
+        guard let recorder = recorder else {
+            throw VoiceRecorderServiceError(code: ErrorCodes.recordingHasNotStarted)
+        }
+        recorder.simulateFailure()
+    }
+
     func getCurrentStatus() -> CurrentRecordingStatus {
         guard let recorder = recorder else {
             return .NONE

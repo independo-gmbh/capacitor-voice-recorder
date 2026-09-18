@@ -2,6 +2,7 @@ package app.independo.capacitorvoicerecorder.adapters;
 
 import app.independo.capacitorvoicerecorder.core.CurrentRecordingStatus;
 import app.independo.capacitorvoicerecorder.core.RecordOptions;
+import app.independo.capacitorvoicerecorder.core.RecordingFailure;
 import app.independo.capacitorvoicerecorder.platform.NotSupportedOsVersion;
 import java.io.File;
 import java.util.function.Consumer;
@@ -16,6 +17,12 @@ public interface RecorderAdapter {
 
     /** Sets the callback for real-time volume updates. */
     void setOnVolumeChanged(Consumer<Float> callback);
+
+    /** Sets the callback invoked when the session dies while running. */
+    void setOnRecordingFailed(Consumer<RecordingFailure> callback);
+
+    /** Fails the live session on purpose, to rehearse the failure path. */
+    void simulateFailure();
 
     /** Starts recording audio. */
     void startRecording();

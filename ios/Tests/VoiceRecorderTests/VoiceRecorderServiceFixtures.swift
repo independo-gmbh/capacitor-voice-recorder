@@ -27,6 +27,12 @@ final class VoiceRecorderServiceFixtures {
         var onInterruptionBegan: (() -> Void)?
         var onInterruptionEnded: (() -> Void)?
         var onVolumeChanged: ((Float) -> Void)?
+        var onRecordingFailed: ((RecordingFailure) -> Void)?
+        var simulateFailureCalled = false
+
+        func simulateFailure() {
+            simulateFailureCalled = true
+        }
         var outputFile: URL = URL(fileURLWithPath: "/tmp/recording.aac")
         var status: CurrentRecordingStatus = .NONE
         var stopSuccess = true

@@ -8,6 +8,7 @@ import app.independo.capacitorvoicerecorder.core.ErrorCodes;
 import app.independo.capacitorvoicerecorder.core.Messages;
 import app.independo.capacitorvoicerecorder.core.RecordData;
 import app.independo.capacitorvoicerecorder.core.RecordOptions;
+import app.independo.capacitorvoicerecorder.core.RecordingFailure;
 import app.independo.capacitorvoicerecorder.core.ResponseFormat;
 import app.independo.capacitorvoicerecorder.core.ResponseGenerator;
 import app.independo.capacitorvoicerecorder.platform.DefaultRecorderPlatform;
@@ -89,6 +90,12 @@ public class VoiceRecorder extends Plugin {
                     JSObject data = new JSObject();
                     data.put("volume", volume);
                     notifyListeners("volumeChanged", data);
+                },
+                (RecordingFailure failure) -> {
+                    JSObject data = new JSObject();
+                    data.put("code", failure.code());
+                    data.put("message", failure.message());
+                    notifyListeners("recordingFailed", data);
                 }
             );
             call.resolve(ResponseGenerator.successResponse());

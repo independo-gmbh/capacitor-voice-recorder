@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Looper;
 import app.independo.capacitorvoicerecorder.core.CurrentRecordingStatus;
 import app.independo.capacitorvoicerecorder.core.RecordOptions;
+import app.independo.capacitorvoicerecorder.core.RecordingFailure;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
 
 public class CustomMediaRecorderTest {
     @Rule
@@ -505,5 +507,162 @@ public class CustomMediaRecorderTest {
         assertEquals(1, levels.size());
         assertTrue(levels.get(0) > 0f);
         assertEquals(1, handler.reposted.size());
+    }
+
+    /**
+     * A session that dies while running is the whole reason this callback
+     * exists: nothing else notices, because nobody is calling anything that
+     * could fail. Here the tick that reads the input level is the only thing
+     * still touching the recorder, so it is the only thing that can tell.
+     */
+    @Test
+    public void aMeteringTickThatThrowsReportsTheSessionAsFailed() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-fail-metering");
+        CapturingHandlerProvider handler = new CapturingHandlerProvider();
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null, true),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest,
+            handler
+        );
+        List<RecordingFailure> failures = new ArrayList<>();
+        recorder.setOnRecordingFailed(failures::add);
+
+        recorder.startRecording();
+        when(mediaRecorder.getMaxAmplitude()).thenThrow(new RuntimeException("getMaxAmplitude failed."));
+        handler.posted.get(0).run();
+
+        assertEquals(1, failures.size());
+        assertEquals(RecordingFailure.AMPLITUDE_READ_FAILED, failures.get(0).code());
+        assertEquals(CurrentRecordingStatus.ERROR, recorder.getCurrentStatus());
+        assertEquals("a failed session is not polled again", 0, handler.reposted.size());
+    }
+
+    /** MediaRecorder's own error callback, which nothing used to be listening to. */
+    @Test
+    public void theMediaRecorderErrorCallbackReportsAFailedSession() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-fail-server");
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null, false),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest
+        );
+        List<RecordingFailure> failures = new ArrayList<>();
+        recorder.setOnRecordingFailed(failures::add);
+        recorder.startRecording();
+
+        ArgumentCaptor<MediaRecorder.OnErrorListener> listener = ArgumentCaptor.forClass(MediaRecorder.OnErrorListener.class);
+        verify(mediaRecorder).setOnErrorListener(listener.capture());
+        listener.getValue().onError(mediaRecorder, MediaRecorder.MEDIA_ERROR_SERVER_DIED, 0);
+
+        assertEquals(1, failures.size());
+        assertEquals(RecordingFailure.SERVER_DIED, failures.get(0).code());
+        assertEquals(CurrentRecordingStatus.ERROR, recorder.getCurrentStatus());
+    }
+
+    /**
+     * Once. After the first failure the recorder is gone, so everything that
+     * touches it afterwards fails too -- and the app only needs telling that the
+     * session is over one time.
+     */
+    @Test
+    public void aFailedSessionIsReportedOnlyOnce() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-fail-once");
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null, false),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest
+        );
+        List<RecordingFailure> failures = new ArrayList<>();
+        recorder.setOnRecordingFailed(failures::add);
+        recorder.startRecording();
+
+        ArgumentCaptor<MediaRecorder.OnErrorListener> listener = ArgumentCaptor.forClass(MediaRecorder.OnErrorListener.class);
+        verify(mediaRecorder).setOnErrorListener(listener.capture());
+        listener.getValue().onError(mediaRecorder, MediaRecorder.MEDIA_ERROR_SERVER_DIED, 0);
+        listener.getValue().onError(mediaRecorder, MediaRecorder.MEDIA_ERROR_SERVER_DIED, 0);
+        recorder.onAudioFocusChange(AudioManager.AUDIOFOCUS_LOSS);
+
+        assertEquals(1, failures.size());
+    }
+
+    /**
+     * The point of not tearing the recorder down in `fail`: whatever was
+     * captured before it died is on disk, and stopping is what collects it.
+     */
+    @Test
+    public void aFailedSessionCanStillBeStoppedToCollectItsFile() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-fail-stop");
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null, false),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest
+        );
+        recorder.startRecording();
+        File outputFile = recorder.getOutputFile();
+
+        ArgumentCaptor<MediaRecorder.OnErrorListener> listener = ArgumentCaptor.forClass(MediaRecorder.OnErrorListener.class);
+        verify(mediaRecorder).setOnErrorListener(listener.capture());
+        listener.getValue().onError(mediaRecorder, MediaRecorder.MEDIA_ERROR_SERVER_DIED, 0);
+
+        // `stop()` is not attempted on a recorder that is already gone -- it
+        // would only throw -- but the session is released and closed out.
+        recorder.stopRecording();
+
+        verify(mediaRecorder, never()).stop();
+        verify(mediaRecorder).release();
+        assertEquals(CurrentRecordingStatus.NONE, recorder.getCurrentStatus());
+        assertEquals("the file is still there to be collected", outputFile, recorder.getOutputFile());
+    }
+
+    /** A pause that throws on an interruption means the recorder was already gone. */
+    @Test
+    public void anInterruptionThatCannotPauseReportsAFailedSession() throws Exception {
+        MediaRecorder mediaRecorder = mock(MediaRecorder.class);
+        AudioManager audioManager = mock(AudioManager.class);
+        AudioFocusRequest focusRequest = mock(AudioFocusRequest.class);
+        File cacheDir = tempFolder.newFolder("cache-fail-interruption");
+        CustomMediaRecorder recorder = createRecorder(
+            new RecordOptions(null, null, false),
+            mediaRecorder,
+            audioManager,
+            cacheDir,
+            android.os.Build.VERSION_CODES.N,
+            focusRequest
+        );
+        List<RecordingFailure> failures = new ArrayList<>();
+        recorder.setOnRecordingFailed(failures::add);
+        recorder.startRecording();
+
+        doThrow(new IllegalStateException("pause failed")).when(mediaRecorder).pause();
+        recorder.onAudioFocusChange(AudioManager.AUDIOFOCUS_LOSS);
+
+        assertEquals(1, failures.size());
+        assertEquals(RecordingFailure.INTERRUPTION_FAILED, failures.get(0).code());
+        assertEquals(CurrentRecordingStatus.ERROR, recorder.getCurrentStatus());
     }
 }

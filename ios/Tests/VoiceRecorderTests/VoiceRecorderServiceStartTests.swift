@@ -16,7 +16,7 @@ final class VoiceRecorderServiceStartTests: XCTestCase {
             try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                        onInterruptionBegan: {},
                                        onInterruptionEnded: {},
-                                       onVolumeChanged: { volume in })
+                                       onVolumeChanged: { volume in }, onRecordingFailed: { _ in })
         ) { error in
             XCTAssertEqual((error as? VoiceRecorderServiceError)?.code, ErrorCodes.deviceCannotVoiceRecord)
         }
@@ -35,7 +35,7 @@ final class VoiceRecorderServiceStartTests: XCTestCase {
             try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                        onInterruptionBegan: {},
                                        onInterruptionEnded: {},
-                                       onVolumeChanged: { volume in })
+                                       onVolumeChanged: { volume in }, onRecordingFailed: { _ in })
         ) { error in
             XCTAssertEqual((error as? VoiceRecorderServiceError)?.code, ErrorCodes.missingPermission)
         }
@@ -53,13 +53,13 @@ final class VoiceRecorderServiceStartTests: XCTestCase {
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {},
-                                   onVolumeChanged: { volume in })
+                                   onVolumeChanged: { volume in }, onRecordingFailed: { _ in })
 
         XCTAssertThrowsError(
             try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                        onInterruptionBegan: {},
                                        onInterruptionEnded: {},
-                                       onVolumeChanged: { volume in })
+                                       onVolumeChanged: { volume in }, onRecordingFailed: { _ in })
         ) { error in
             XCTAssertEqual((error as? VoiceRecorderServiceError)?.code, ErrorCodes.alreadyRecording)
         }
@@ -79,7 +79,7 @@ final class VoiceRecorderServiceStartTests: XCTestCase {
             try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                        onInterruptionBegan: {},
                                        onInterruptionEnded: {},
-                                       onVolumeChanged: { volume in })
+                                       onVolumeChanged: { volume in }, onRecordingFailed: { _ in })
         ) { error in
             XCTAssertEqual((error as? VoiceRecorderServiceError)?.code, ErrorCodes.deviceCannotVoiceRecord)
         }
@@ -97,7 +97,7 @@ final class VoiceRecorderServiceStartTests: XCTestCase {
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {},
-                                   onVolumeChanged: { volume in })
+                                   onVolumeChanged: { volume in }, onRecordingFailed: { _ in })
 
         XCTAssertNotNil(recorder.onInterruptionBegan)
         XCTAssertNotNil(recorder.onInterruptionEnded)

@@ -40,10 +40,7 @@ export class VoiceRecorderWeb extends WebPlugin implements VoiceRecorderPlugin {
 
   /** Starts a recording session. */
   public startRecording(options?: RecordingOptions): Promise<GenericResponse> {
-    return this.service.startRecording(
-      options,
-      volume => this.notifyListeners('volumeChanged', { volume }),
-    );
+    return this.service.startRecording(options, (volume) => this.notifyListeners('volumeChanged', { volume }));
   }
 
   /** Stops the current recording session and returns the payload. */
@@ -64,5 +61,15 @@ export class VoiceRecorderWeb extends WebPlugin implements VoiceRecorderPlugin {
   /** Returns the current recording state. */
   public getCurrentStatus(): Promise<CurrentRecordingStatus> {
     return this.service.getCurrentStatus();
+  }
+
+  /**
+   * Not available in a browser: the failure this rehearses is a native session
+   * dying, which has no counterpart in `MediaRecorder` on the web. Rejecting is
+   * the honest answer -- a silent no-op would look like the simulation ran and
+   * the app ignored it.
+   */
+  public simulateRecordingFailure(): Promise<GenericResponse> {
+    return Promise.reject(new Error('simulateRecordingFailure is only implemented on Android and iOS'));
   }
 }

@@ -10,6 +10,8 @@ protocol RecorderAdapter: AnyObject {
     var onInterruptionEnded: (() -> Void)? { get set }
     /// Callback for receiving volume updates.
     var onVolumeChanged: ((Float) -> Void)? { get set }
+    /// Callback invoked when the session dies while running.
+    var onRecordingFailed: ((RecordingFailure) -> Void)? { get set }
 
     /// Starts recording audio.
     func startRecording(recordOptions: RecordOptions?) -> Bool
@@ -23,4 +25,6 @@ protocol RecorderAdapter: AnyObject {
     func getCurrentStatus() -> CurrentRecordingStatus
     /// Returns the output file for the current session.
     func getOutputFile() -> URL
+    /// Fails the live session on purpose, to rehearse the failure path.
+    func simulateFailure()
 }

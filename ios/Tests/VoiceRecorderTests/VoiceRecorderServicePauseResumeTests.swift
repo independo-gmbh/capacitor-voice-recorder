@@ -29,7 +29,7 @@ final class VoiceRecorderServicePauseResumeTests: XCTestCase {
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {},
-                                   onVolumeChanged: { volume in })
+                                   onVolumeChanged: { volume in }, onRecordingFailed: { _ in })
 
         XCTAssertFalse(try service.pauseRecording())
         XCTAssertEqual(service.getCurrentStatus(), .RECORDING)
@@ -47,7 +47,7 @@ final class VoiceRecorderServicePauseResumeTests: XCTestCase {
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {},
-                                   onVolumeChanged: { volume in })
+                                   onVolumeChanged: { volume in }, onRecordingFailed: { _ in })
 
         XCTAssertTrue(try service.pauseRecording())
         XCTAssertEqual(service.getCurrentStatus(), .PAUSED)
@@ -80,7 +80,7 @@ final class VoiceRecorderServicePauseResumeTests: XCTestCase {
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {},
-                                   onVolumeChanged: { volume in })
+                                   onVolumeChanged: { volume in }, onRecordingFailed: { _ in })
         XCTAssertTrue(try service.pauseRecording())
 
         XCTAssertFalse(try service.resumeRecording())
@@ -99,7 +99,7 @@ final class VoiceRecorderServicePauseResumeTests: XCTestCase {
         try service.startRecording(options: RecordOptions(directory: nil, subDirectory: nil, volumeMetering: false),
                                    onInterruptionBegan: {},
                                    onInterruptionEnded: {},
-                                   onVolumeChanged: { volume in })
+                                   onVolumeChanged: { volume in }, onRecordingFailed: { _ in })
         XCTAssertTrue(try service.pauseRecording())
         XCTAssertTrue(try service.resumeRecording())
 
