@@ -13,7 +13,7 @@
     "url": "https://github.com/independo-gmbh/capacitor-voice-recorder.git"
   },
   "description": "Capacitor plugin for voice recording",
-  "version": "8.3.9",
+  "version": "8.3.10-dev.3",
   "packageManager": "pnpm@11.8.0",
   "devDependencies": {
     "@capacitor/android": "catalog:",
@@ -29,8 +29,8 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^26.4.0",
     "conventional-changelog-conventionalcommits": "^9.3.1",
-    "eslint": "10.9.1",
-    "globals": "17.11.0",
+    "eslint": "10.10.0",
+    "globals": "17.12.0",
     "jest": "^30.5.0",
     "jest-environment-jsdom": "^30.5.0",
     "rollup": "^4.63.1",
@@ -38,7 +38,7 @@
     "swiftlint": "^2.0.0",
     "ts-jest": "^29.4.12",
     "typescript": "^5.9.3",
-    "typescript-eslint": "8.68.0"
+    "typescript-eslint": "8.70.0"
   },
   "main": "dist/plugin.cjs.js",
   "files": [
