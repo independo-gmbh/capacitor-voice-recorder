@@ -213,6 +213,8 @@ jobs:
       - run: pnpm run build
 
   publish:
+    # Only release from pushes to protected branches; never grant write/OIDC scopes to PR runs
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write # to be able to publish a GitHub release
