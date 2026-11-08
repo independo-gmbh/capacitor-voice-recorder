@@ -3,11 +3,11 @@ packages:
   - example
 
 catalog:
-  '@capacitor/android': ^8.5.3
+  '@capacitor/android': ^8.6.0
   '@capacitor/cli': ^8.5.3
-  '@capacitor/core': ^8.5.3
+  '@capacitor/core': ^8.6.0
   '@capacitor/docgen': ^0.3.1
-  '@capacitor/ios': ^8.5.3
+  '@capacitor/ios': ^8.6.0
 
 minimumReleaseAge: 1440
 blockExoticSubdeps: true
@@ -35,3 +35,6 @@ overrides:
 minimumReleaseAgeExclude:
   - brace-expansion@5.0.8
   - uuid@11.1.1
+  - deepmerge@4.3.2
+  - glob@14.0.2
+  - minimatch@11.0.1
