@@ -406,7 +406,7 @@ Event payload for voiceRecordingInterrupted event (empty - no data).
 
 Construct a type with a set of properties K of type T
 
-<code>{ [P in K]: T; }</code>
+<code>{ [P in K]: T; }</code>
 
 
 #### VoiceRecordingInterruptionEndedEvent
@@ -539,3 +539,7 @@ normalized response path). The codebase now diverges substantially, which is why
 This plugin is maintained by [Independo GmbH](https://www.independo.app/).
 
 Explore more [open-source tools and research from Independo](https://www.independo.app/open-source).
+
+## Related
+
+From the same team: [IndeRun](https://inderun.dev): on-device AI for the devices your users actually have. Text tasks and read-aloud through one Capacitor API; on-device when available, cloud only when you allow it.
