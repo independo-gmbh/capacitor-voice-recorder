@@ -30,7 +30,7 @@
     "@types/node": "^26.6.6",
     "conventional-changelog-conventionalcommits": "^9.3.1",
     "eslint": "10.14.0",
-    "globals": "17.13.0",
+    "globals": "17.14.0",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
     "rollup": "^4.68.0",
