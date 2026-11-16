@@ -33,7 +33,7 @@
     "globals": "17.14.0",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
-    "rollup": "^4.68.0",
+    "rollup": "^4.68.3",
     "semantic-release": "^25.0.9",
     "swiftlint": "^2.0.0",
     "ts-jest": "^29.4.15",
